@@ -1,0 +1,76 @@
+{
+  "require_version" : "5.10",
+  "directory": [],
+  "sql_file": "",
+  "libraries": [],
+  "files": [
+    {
+        "root_directory" : "update/update_5.10.1/application/config/routes.php",
+        "update_directory" : "application/config/routes.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/controllers/Home.php",
+            "update_directory" : "application/controllers/Home.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/controllers/User.php",
+            "update_directory" : "application/controllers/User.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/models/Crud_model.php",
+            "update_directory" : "application/models/Crud_model.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/backend/admin/navigation.php",
+            "update_directory" : "application/views/backend/admin/navigation.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/backend/common_scripts.php",
+            "update_directory" : "application/views/backend/common_scripts.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/backend/modal.php",
+            "update_directory" : "application/views/backend/modal.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/backend/user/navigation.php",
+            "update_directory" : "application/views/backend/user/navigation.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/backend/user/request_withdrawal.php",
+            "update_directory" : "application/views/backend/user/request_withdrawal.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/frontend/default/blog_details.php",
+            "update_directory" : "application/views/frontend/default/blog_details.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/frontend/default/menu.php",
+            "update_directory" : "application/views/frontend/default/menu.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/frontend/default/profile_menus.php",
+            "update_directory" : "application/views/frontend/default/profile_menus.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/lessons/general_course_content_body.php",
+            "update_directory" : "application/views/lessons/general_course_content_body.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/lessons/quiz_result.php",
+            "update_directory" : "application/views/lessons/quiz_result.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/lessons/quiz_view.php",
+            "update_directory" : "application/views/lessons/quiz_view.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/mobile/quiz_result.php",
+            "update_directory" : "application/views/mobile/quiz_result.php"
+    },
+    {
+            "root_directory" : "update/update_5.10.1/application/views/mobile/quiz_view.php",
+            "update_directory" : "application/views/mobile/quiz_view.php"
+    }
+  ]
+}
