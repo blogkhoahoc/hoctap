@@ -1979,6 +1979,19 @@ class Crud_model extends CI_Model
 
     public function enrol_student($user_id)
     {
+        // --- BẮT ĐẦU: TRỪ SỐ LƯỢNG COUPON CHÍNH XÁC ---
+        $applied_coupon = $this->session->userdata('applied_coupon');
+        if (!empty($applied_coupon)) {
+            // Trừ 1 lượt dùng trong DB
+            $this->db->where('code', $applied_coupon);
+            $this->db->where('quantity >', 0);
+            $this->db->set('quantity', 'quantity - 1', FALSE);
+            $this->db->update('coupons');
+            
+            // Hủy session ngay lập tức để tránh hệ thống chạy ngầm trừ 2 lần
+            $this->session->unset_userdata('applied_coupon');
+        }
+        // --- KẾT THÚC: TRỪ SỐ LƯỢNG COUPON ---
         $purchased_courses = $this->session->userdata('cart_items');
         foreach ($purchased_courses as $purchased_course) {
             $data['user_id'] = $user_id;
@@ -3393,6 +3406,7 @@ class Crud_model extends CI_Model
         if (isset($_POST['code']) && !empty($_POST['code']) && isset($_POST['discount_percentage']) && !empty($_POST['discount_percentage']) && isset($_POST['expiry_date']) && !empty($_POST['expiry_date'])) {
             $data['code'] = $this->input->post('code');
             $data['discount_percentage'] = $this->input->post('discount_percentage') > 0 ? $this->input->post('discount_percentage') : 0;
+            $data['quantity'] = $this->input->post('quantity');
             $data['expiry_date'] = strtotime($this->input->post('expiry_date'));
             $data['created_at'] = strtotime(date('D, d-M-Y'));
 
@@ -3400,6 +3414,8 @@ class Crud_model extends CI_Model
             if ($availability) {
                 return false;
             } else {
+                $course_ids = $this->input->post('course_ids');
+                $data['course_ids'] = !empty($course_ids) ? json_encode($course_ids) : '[]';
                 $this->db->insert('coupons', $data);
                 return true;
             }
@@ -3412,6 +3428,7 @@ class Crud_model extends CI_Model
         if (isset($_POST['code']) && !empty($_POST['code']) && isset($_POST['discount_percentage']) && !empty($_POST['discount_percentage']) && isset($_POST['expiry_date']) && !empty($_POST['expiry_date'])) {
             $data['code'] = $this->input->post('code');
             $data['discount_percentage'] = $this->input->post('discount_percentage') > 0 ? $this->input->post('discount_percentage') : 0;
+            $data['quantity'] = $this->input->post('quantity');
             $data['expiry_date'] = strtotime($this->input->post('expiry_date'));
             $data['created_at'] = strtotime(date('D, d-M-Y'));
 
@@ -3422,6 +3439,8 @@ class Crud_model extends CI_Model
                 return false;
             } else {
                 $this->db->where('id', $coupon_id);
+                $course_ids = $this->input->post('course_ids');
+                $data['course_ids'] = !empty($course_ids) ? json_encode($course_ids) : '[]';
                 $this->db->update('coupons', $data);
                 return true;
             }
@@ -3438,44 +3457,92 @@ class Crud_model extends CI_Model
     }
 
     // CHECK IF THE COUPON CODE IS VALID
-    public function check_coupon_validity($coupon_code)
-    {
-        $this->db->where('code', $coupon_code);
-        $result = $this->db->get('coupons');
-        if ($result->num_rows() > 0) {
-            $result = $result->row_array();
-            if ($result['expiry_date'] >= strtotime(date('D, d-M-Y'))) {
-                return true;
-            } else {
+    public function check_coupon_validity($coupon_code = "") {
+        $coupon_details = $this->db->get_where('coupons', array('code' => $coupon_code))->row_array();
+    
+        if ($coupon_details) {
+            // 1. Kiểm tra ngày hết hạn (giữ nguyên logic cũ của hệ thống)
+            if (strtotime(date('D, d-M-Y')) > $coupon_details['expiry_date']) {
                 return false;
             }
-        } else {
+    
+            // 2. Kiểm tra số lượng (Nếu mã đã hết lượt dùng)
+            if (isset($coupon_details['quantity']) && $coupon_details['quantity'] <= 0) {
+                return false;
+            }
+    
+            // 3. Kiểm tra xem mã này có áp dụng cho khóa học trong giỏ không
+            $course_ids_json = (!empty($coupon_details['course_ids'])) ? $coupon_details['course_ids'] : '[]';
+            $valid_courses = json_decode($course_ids_json, true);
+            if (!is_array($valid_courses)) $valid_courses = [];
+    
+            // Nếu admin bỏ trống (mảng rỗng) -> áp dụng cho mọi hóa đơn -> Hợp lệ
+            if (empty($valid_courses)) {
+                return true;
+            }
+    
+            // Nếu admin có chọn khóa -> Lục tung giỏ hàng xem học viên có mua khóa đó không
+            $cart_items = $this->session->userdata('cart_items');
+            if (is_array($cart_items) && count($cart_items) > 0) {
+                foreach ($cart_items as $item) {
+                    if (in_array($item, $valid_courses)) {
+                        return true; // Chỉ cần mua 1 khóa hợp lệ là được phép xài mã
+                    }
+                }
+            }
+            
+            // Không mua khóa nào hợp lệ cả
             return false;
         }
+        return false; // Mã không tồn tại
     }
 
     // GET DISCOUNTED PRICE AFTER APPLYING COUPON
-    public function get_discounted_price_after_applying_coupon($coupon_code)
-    {
-        $total_price  = 0;
-        foreach ($this->session->userdata('cart_items') as $cart_item) {
-            $course_details = $this->crud_model->get_course_by_id($cart_item)->row_array();
-            if ($course_details['discount_flag'] == 1) {
-                $total_price += $course_details['discounted_price'];
-            } else {
-                $total_price  += $course_details['price'];
+    public function get_discounted_price_after_applying_coupon($coupon_code = "") {
+        $coupon_details = $this->db->get_where('coupons', array('code' => $coupon_code))->row_array();
+        
+        $total_price = 0;
+        $total_discount_amount = 0;
+        $cart_items = $this->session->userdata('cart_items');
+    
+        // BƯỚC 1: Tự tính tổng tiền giỏ hàng (Không cần gọi hàm bên ngoài nữa)
+        if (is_array($cart_items) && count($cart_items) > 0) {
+            foreach ($cart_items as $cart_item) {
+                $course_details = $this->get_course_by_id($cart_item)->row_array();
+                if (!empty($course_details) && $course_details['is_free_course'] != 1) {
+                    $course_price = $course_details['discount_flag'] == 1 ? $course_details['discounted_price'] : $course_details['price'];
+                    $total_price += $course_price;
+                }
             }
         }
-
-        if ($this->check_coupon_validity($coupon_code)) {
-            $coupon_details = $this->get_coupon_details_by_code($coupon_code)->row_array();
-            $discounted_price = ($total_price * $coupon_details['discount_percentage']) / 100;
-            $total_price = $total_price - $discounted_price;
-        } else {
-            return $total_price;
+    
+        // BƯỚC 2: Tính số tiền được giảm giá dựa theo khóa học được chọn
+        if ($coupon_details && is_array($cart_items) && count($cart_items) > 0) {
+            $coupon_discount = $coupon_details['discount_percentage'];
+            
+            $course_ids_json = (!empty($coupon_details['course_ids'])) ? $coupon_details['course_ids'] : '[]';
+            $valid_courses_for_coupon = json_decode($course_ids_json, true);
+            if (!is_array($valid_courses_for_coupon)) {
+                $valid_courses_for_coupon = [];
+            }
+    
+            foreach ($cart_items as $cart_item) {
+                $course_details = $this->get_course_by_id($cart_item)->row_array();
+                
+                if (empty($course_details) || $course_details['is_free_course'] == 1) continue; 
+    
+                $course_price = $course_details['discount_flag'] == 1 ? $course_details['discounted_price'] : $course_details['price'];
+    
+                if (empty($valid_courses_for_coupon) || in_array($cart_item, $valid_courses_for_coupon)) {
+                    $discount_amount = ($course_price * $coupon_discount) / 100;
+                    $total_discount_amount += $discount_amount;
+                }
+            }
         }
-
-        return $total_price > 0 ? $total_price : 0;
+    
+        // BƯỚC 3: Trừ tiền và trả về kết quả
+        $final_price = $total_price - $total_discount_amount;
+        return $final_price > 0 ? $final_price : 0;
     }
 
     function get_free_lessons($lesson_id = "")

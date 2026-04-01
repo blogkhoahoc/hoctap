@@ -144,15 +144,36 @@
             $total_price = $total_price + ($total_price/100) * get_settings('course_selling_tax');
         endif;?>
 
-        <div class="input-group marge-input-box mb-3">
-            <input type="text" class="form-control" placeholder="<?php echo site_phrase('apply_coupon_code'); ?>" id="coupon-code">
-            <div class="input-group-append">
-                <button class="btn" type="button" onclick="applyCoupon()">
-                    <i class="fas fa-spinner fa-pulse hidden" id="spinner"></i>
-                    <?php echo site_phrase('apply'); ?>
-                </button>
+        <?php if (sizeof($this->session->userdata('cart_items')) > 0): ?>
+            
+            <div class="input-group marge-input-box mb-3">
+                <input type="text" class="form-control" placeholder="<?php echo site_phrase('apply_coupon_code'); ?>" id="coupon-code">
+                <div class="input-group-append">
+                    <button class="btn" type="button" onclick="applyCoupon()">
+                        <i class="fas fa-spinner fa-pulse hidden" id="spinner"></i>
+                        <?php echo site_phrase('apply'); ?>
+                    </button>
+                </div>
             </div>
-        </div>
-        <button type="button" class="btn red w-100 radius-10 mb-3" onclick="handleCheckOut()"><?php echo site_phrase('checkout'); ?></button>
+
+            <?php 
+            // 1. Chốt lại giá trị giỏ hàng lần cuối ở giao diện
+            $grand_total = $total_price; 
+            $applied_coupon_session = $this->session->userdata('applied_coupon');
+            if ($applied_coupon_session) {
+                $grand_total = $this->crud_model->get_discounted_price_after_applying_coupon($applied_coupon_session);
+            }
+
+            // 2. LƯU VÀO SESSION CHO TRANG THANH TOÁN
+            $this->session->set_userdata('total_price_of_checking_out', $grand_total);
+            ?>
+
+            <?php if ($grand_total <= 0 && $applied_coupon_session != ""): ?>
+                <a href="<?php echo site_url('home/free_checkout'); ?>" class="btn red w-100 radius-10 mb-3" style="background-color: #28a745; color: white; display: block; text-align: center; padding: 12px 0;">Đăng ký ngay (Miễn phí)</a>
+            <?php else: ?>
+                <button type="button" class="btn red w-100 radius-10 mb-3" onclick="handleCheckOut()"><?php echo site_phrase('checkout'); ?></button>
+            <?php endif; ?>
+
+        <?php endif; ?>
     </div>
 </div>

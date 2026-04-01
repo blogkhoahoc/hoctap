@@ -12,6 +12,28 @@ class Offline_payment_model extends CI_Model
 	//Offline checkout User panel
 	public function attach_payment_document($file_extension = "")
 	{
+	    // --- BẮT ĐẦU LỚP BẢO MẬT 2: KIỂM TRA CHỐT HẠ & TRỪ SỐ LƯỢNG MÃ ---
+        $applied_coupon = $this->session->userdata('applied_coupon');
+        if (!empty($applied_coupon)) {
+            // Lục lại database xem mã còn sống không
+            $is_valid = $this->crud_model->check_coupon_validity($applied_coupon);
+            
+            if (!$is_valid) {
+                // Nếu có người nhanh tay dùng mất mã -> Hủy session, báo lỗi và đá văng ra giỏ hàng
+                $this->session->unset_userdata('applied_coupon');
+                $this->session->set_userdata('total_price_of_checking_out', '');
+                $this->session->set_flashdata('error_message', 'Thanh toán thất bại! Mã giảm giá vừa có người sử dụng hết.');
+                redirect('home/shopping_cart', 'refresh');
+                exit; // ⚠️ Lệnh exit này sẽ chặt đứt luồng chạy, chặn đứng việc lưu data và upload ảnh ở bên dưới
+            } else {
+                // Nếu mã vẫn hợp lệ -> Trừ ngay đi 1 lượt sử dụng
+                $this->db->where('code', $applied_coupon);
+                $this->db->where('quantity >', 0);
+                $this->db->set('quantity', 'quantity - 1', FALSE);
+                $this->db->update('coupons');
+            }
+        }
+        // --- KẾT THÚC LỚP BẢO MẬT 2 ---
 		$total_amount = $this->session->userdata('total_price_of_checking_out');
 		$user_id = $this->session->userdata('user_id');
 		$curse_id = json_encode($this->session->userdata('cart_items'));
@@ -27,6 +49,8 @@ class Offline_payment_model extends CI_Model
 		move_uploaded_file($_FILES['payment_document']['tmp_name'], 'uploads/payment_document/' . $data['document_image']);
 
 		$this->session->set_userdata('cart_items', array());
+		$this->session->unset_userdata('applied_coupon');
+		$this->session->set_userdata('total_price_of_checking_out', '');
 	}
 
 	//User panel

@@ -368,6 +368,8 @@ class Home extends CI_Controller
         }
 
         $this->session->set_userdata('cart_items', $previous_cart_items);
+        $this->session->unset_userdata('applied_coupon');
+        $this->session->set_userdata('total_price_of_checking_out', '');
         if ($return_number == 'true') {
             echo sizeof($previous_cart_items);
         } else {
@@ -387,6 +389,8 @@ class Home extends CI_Controller
             array_push($previous_cart_items, $course_id);
         }
         $this->session->set_userdata('cart_items', $previous_cart_items);
+        $this->session->unset_userdata('applied_coupon');
+        $this->session->set_userdata('total_price_of_checking_out', '');
         $this->load->view('frontend/' . get_frontend_settings('theme') . '/cart_items');
     }
 
@@ -425,6 +429,21 @@ class Home extends CI_Controller
     {
         if ($this->session->userdata('user_login') != 1)
             redirect('login', 'refresh');
+            
+        // --- BẮT ĐẦU LỚP BẢO MẬT 1: KIỂM TRA MÃ TRƯỚC KHI HIỂN THỊ TRANG THANH TOÁN ---
+        $applied_coupon = $this->session->userdata('applied_coupon');
+        if (!empty($applied_coupon)) {
+            $is_valid = $this->crud_model->check_coupon_validity($applied_coupon);
+            if (!$is_valid) {
+                // Hủy session mã và đá văng ra giỏ hàng
+                $this->session->unset_userdata('applied_coupon');
+                $this->session->set_userdata('total_price_of_checking_out', '');
+                $this->session->set_flashdata('error_message', 'Rất tiếc! Mã giảm giá đã hết lượt sử dụng hoặc đã hết hạn.');
+                redirect('home/shopping_cart', 'refresh');
+                return;
+            }
+        }
+        // --- KẾT THÚC LỚP BẢO MẬT 1 ---
 
         $page_data['total_price_of_checking_out'] = $this->session->userdata('total_price_of_checking_out');
         $page_data['page_title'] = site_phrase("payment_gateway");
@@ -1314,8 +1333,60 @@ class Home extends CI_Controller
              echo '<h6>'.api_phrase('buy_the_course').'</h6>';
         }
     }
-
-
+    
+    public function free_checkout() {
+        // Kiểm tra đã đăng nhập chưa
+        if ($this->session->userdata('user_login') != 1) {
+            redirect('home/login', 'refresh');
+        }
+    
+        // --- BẮT ĐẦU BẢO MẬT: KIỂM TRA LẠI MÃ GIẢM GIÁ TRƯỚC KHI CẤP QUYỀN ---
+        $applied_coupon = $this->session->userdata('applied_coupon');
+        if (!empty($applied_coupon)) {
+            // Gọi lại hàm kiểm tra nghiêm ngặt trong Model (đã check cả số lượng và ngày tháng)
+            $is_valid = $this->crud_model->check_coupon_validity($applied_coupon);
+            
+            if (!$is_valid) {
+                // Nếu có ai đó đã nhanh tay dùng hết mã, lập tức tước quyền và hủy session
+                $this->session->unset_userdata('applied_coupon');
+                $this->session->set_userdata('total_price_of_checking_out', '');
+                
+                // Đá người dùng về lại trang giỏ hàng và báo thông báo đỏ
+                $this->session->set_flashdata('error_message', 'Rất tiếc! Mã giảm giá này vừa hết lượt sử dụng hoặc đã hết hạn.');
+                redirect('home/shopping_cart', 'refresh');
+                return; // Lệnh này bắt buộc phải có để dừng chặn đứng hàm tại đây
+            }
+        }
+        // --- KẾT THÚC BẢO MẬT ---
+    
+    
+        // Lấy thẳng giá trị giỏ hàng từ session (lúc này đã chắc chắn an toàn)
+        $final_price = $this->session->userdata('total_price_of_checking_out');
+    
+        // Chỉ cho phép đi tiếp nếu tổng giá trị giỏ hàng thực sự <= 0
+        if ($final_price <= 0 && $final_price != "") {
+            $user_id = $this->session->userdata('user_id');
+            
+            // 1. Cấp quyền học (Hàm này sẽ tự động gọi logic trừ Coupon)
+            $this->crud_model->enrol_student($user_id);
+            
+            // 2. Ghi lại lịch sử mua hàng với giá 0đ
+            if (method_exists($this->crud_model, 'course_purchase')) {
+                $this->crud_model->course_purchase($user_id, 'coupon_100_percent', 0);
+            }
+    
+            // 3. Dọn dẹp giỏ hàng
+            $this->session->set_userdata('cart_items', array());
+            $this->session->set_userdata('total_price_of_checking_out', '');
+    
+            // 4. Báo thành công và chuyển thẳng vào khóa học của tôi
+            $this->session->set_flashdata('flash_message', 'Đăng ký khóa học thành công!');
+            redirect('home/my_courses', 'refresh');
+        } else {
+            // Nếu giá > 0 mà cố tình gọi link này, đẩy về trang thanh toán
+            redirect('home/payment', 'refresh');
+        }
+    }
 
 
 
