@@ -2,7 +2,7 @@
 	<hr class="border mb-4">
 	<label for="amount"><?php echo get_phrase('payable_amount'); ?></label>
 	<input type="number" id="amount" class="form-control" name="amount" value="<?php echo $total_price_of_checking_out; ?>" readonly>
-	<label class="mt-4" for="payment_document"><?php echo get_phrase('document_of_your_payment'); ?> (jpg, pdf, txt, png, docx)</label>
+	<label class="mt-4" for="payment_document"><?php echo get_phrase('document_of_your_payment'); ?> (jpg, png, jpeg, webp, jfif, pdf, txt, docx)</label>
 	<input type="file" class="form-control" id="payment_document" name="payment_document" required>
 	<button type="submit" class="payment-button float-right mt-4"><?php echo get_phrase('submit_payment_document'); ?></button>
 

@@ -501,4 +501,21 @@ class Email_model extends CI_Model
 		// echo $this->email->print_debugger();
 		// die();
 	}
+	
+	// GỬI EMAIL THÔNG BÁO CHO ADMIN KHI CÓ NGƯỜI THANH TOÁN OFFLINE
+	public function send_offline_payment_notification_to_admin()
+	{
+		// 1. Lấy địa chỉ email của Admin (role_id = 1)
+		$admin_email = $this->db->get_where('users', array('role_id' => 1))->row()->email;
+		
+		// 2. Nội dung Email
+		$subject = "THÔNG BÁO: Có đơn hàng thanh toán thủ công mới cần phê duyệt!";
+		$message = "Chào Admin,<br><br>";
+		$message .= "Hệ thống vừa ghi nhận một thông tin thanh toán thủ công (Offline Payment) mới từ học viên.<br>";
+		$message .= "Vui lòng đăng nhập vào trang quản trị (Mục Addons -> Thanh toán ngoại tuyến) để kiểm tra biên lai và phê duyệt khóa học cho học viên.<br><br>";
+		$message .= "Trân trọng!";
+		
+		// 3. Gửi email
+		$this->send_smtp_mail($message, $subject, $admin_email);
+	}
 }

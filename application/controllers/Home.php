@@ -429,6 +429,15 @@ class Home extends CI_Controller
     {
         if ($this->session->userdata('user_login') != 1)
             redirect('login', 'refresh');
+		
+		// --- BẮT ĐẦU: CHẶN THANH TOÁN KHI SỐ TIỀN RỖNG HOẶC BẰNG 0 ---
+        $total_price_of_checking_out = $this->session->userdata('total_price_of_checking_out');
+        if (empty($total_price_of_checking_out) || $total_price_of_checking_out <= 0) {
+            $this->session->set_flashdata('error_message', 'Giỏ hàng rỗng hoặc số tiền không hợp lệ. Vui lòng thử lại!');
+            redirect('home/shopping_cart', 'refresh'); // Đá văng về trang giỏ hàng
+            return; // Dừng thực thi
+        }
+        // --- KẾT THÚC: CHẶN THANH TOÁN ---
             
         // --- BẮT ĐẦU LỚP BẢO MẬT 1: KIỂM TRA MÃ TRƯỚC KHI HIỂN THỊ TRANG THANH TOÁN ---
         $applied_coupon = $this->session->userdata('applied_coupon');
@@ -445,7 +454,7 @@ class Home extends CI_Controller
         }
         // --- KẾT THÚC LỚP BẢO MẬT 1 ---
 
-        $page_data['total_price_of_checking_out'] = $this->session->userdata('total_price_of_checking_out');
+        $page_data['total_price_of_checking_out'] = $total_price_of_checking_out;
         $page_data['page_title'] = site_phrase("payment_gateway");
         $this->load->view('payment/index', $page_data);
     }

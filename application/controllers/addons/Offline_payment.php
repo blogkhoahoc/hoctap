@@ -137,7 +137,7 @@ class Offline_payment extends CI_Controller
 		$status = "error";
 		$course_id = $this->session->userdata('cart_items');
 		$file_extension = pathinfo($_FILES['payment_document']['name'], PATHINFO_EXTENSION);
-		if ($file_extension == 'jpg' || $file_extension == 'pdf' || $file_extension == 'txt' || $file_extension == 'png' || $file_extension == 'docx') :
+		if ($file_extension == 'jpg' || $file_extension == 'pdf' || $file_extension == 'txt' || $file_extension == 'png' || $file_extension == 'docx' || $file_extension == 'jpeg' || $file_extension == 'webp' || $file_extension == 'jfif') :
 			if ($this->session->userdata('total_price_of_checking_out') > 0) :
 				$this->offline_payment_model->attach_payment_document($file_extension);
 				$this->session->set_flashdata('flash_message', get_phrase('your_document_will_be_reviewd'));

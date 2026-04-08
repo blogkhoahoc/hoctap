@@ -46,6 +46,12 @@ class Offline_payment_model extends CI_Model
 		$data['status'] = 0;
 
 		$this->db->insert('offline_payment', $data);
+		
+		// --- BẮT ĐẦU: GỌI HÀM GỬI EMAIL CHO ADMIN ---
+		$this->load->model('email_model');
+		$this->email_model->send_offline_payment_notification_to_admin();
+		// --- KẾT THÚC ---
+		
 		move_uploaded_file($_FILES['payment_document']['tmp_name'], 'uploads/payment_document/' . $data['document_image']);
 
 		$this->session->set_userdata('cart_items', array());
