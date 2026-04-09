@@ -1472,6 +1472,8 @@ class Crud_model extends CI_Model
                     return json_encode(['error' => get_phrase('invalid_source')]);
                 }
                 $data['attachment'] = $this->input->post('iframe_source');
+				$duration = $this->input->post('duration');
+				$data['duration'] = empty($duration) ? '00:00:00' : $duration;
             } else {
                 if ($_FILES['attachment']['name'] == "") {
                     return json_encode(['error' => get_phrase('invalid_attachment')]);
@@ -1751,6 +1753,8 @@ class Crud_model extends CI_Model
                     return json_encode(['error' => get_phrase('invalid_source')]);
                 }
                 $data['attachment'] = $this->input->post('iframe_source');
+				$duration = $this->input->post('duration');
+				$data['duration'] = empty($duration) ? '00:00:00' : $duration;
             } else {
                 if ($_FILES['attachment']['name'] != "") {
                     // unlinking previous attachments
@@ -2267,20 +2271,21 @@ class Crud_model extends CI_Model
         }
     }
 
-    public function get_total_duration_of_lesson_by_course_id($course_id)
+	public function get_total_duration_of_lesson_by_course_id($course_id)
     {
         $total_duration = 0;
         $lessons = $this->crud_model->get_lessons('course', $course_id)->result_array();
         foreach ($lessons as $lesson) {
-            if ($lesson['lesson_type'] != "other" && $lesson['lesson_type'] != "text") {
+            // Chỉ cần kiểm tra có tồn tại chuỗi thời gian (có dấu :) hay không
+            if (!empty($lesson['duration']) && strpos($lesson['duration'], ':') !== false) {
                 $time_array = explode(':', $lesson['duration']);
-                $hour_to_seconds = $time_array[0] * 60 * 60;
-                $minute_to_seconds = $time_array[1] * 60;
-                $seconds = $time_array[2];
+                $hour_to_seconds = isset($time_array[0]) ? $time_array[0] * 60 * 60 : 0;
+                $minute_to_seconds = isset($time_array[1]) ? $time_array[1] * 60 : 0;
+                $seconds = isset($time_array[2]) ? $time_array[2] : 0;
                 $total_duration += $hour_to_seconds + $minute_to_seconds + $seconds;
             }
         }
-        // return gmdate("H:i:s", $total_duration).' '.get_phrase('hours');
+        
         $hours = floor($total_duration / 3600);
         $minutes = floor(($total_duration % 3600) / 60);
         $seconds = $total_duration % 60;
@@ -2292,15 +2297,16 @@ class Crud_model extends CI_Model
         $total_duration = 0;
         $lessons = $this->crud_model->get_lessons('section', $section_id)->result_array();
         foreach ($lessons as $lesson) {
-            if ($lesson['lesson_type'] != "other" && $lesson['lesson_type'] != "text") {
+            // Chỉ cần kiểm tra có tồn tại chuỗi thời gian (có dấu :) hay không
+            if (!empty($lesson['duration']) && strpos($lesson['duration'], ':') !== false) {
                 $time_array = explode(':', $lesson['duration']);
-                $hour_to_seconds = $time_array[0] * 60 * 60;
-                $minute_to_seconds = $time_array[1] * 60;
-                $seconds = $time_array[2];
+                $hour_to_seconds = isset($time_array[0]) ? $time_array[0] * 60 * 60 : 0;
+                $minute_to_seconds = isset($time_array[1]) ? $time_array[1] * 60 : 0;
+                $seconds = isset($time_array[2]) ? $time_array[2] : 0;
                 $total_duration += $hour_to_seconds + $minute_to_seconds + $seconds;
             }
         }
-        //return gmdate("H:i:s", $total_duration).' '.get_phrase('hours');
+        
         $hours = floor($total_duration / 3600);
         $minutes = floor(($total_duration % 3600) / 60);
         $seconds = $total_duration % 60;
