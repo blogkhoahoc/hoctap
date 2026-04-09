@@ -262,12 +262,37 @@ if (!function_exists('get_frontend_settings')) {
 if (!function_exists('slugify')) {
     function slugify($text)
     {
-        $text = preg_replace('~[^\\pL\d]+~u', '-', $text);
+        // 1. Chuyển chuỗi sang chữ thường
+        $text = mb_strtolower($text, 'UTF-8');
+
+        // 2. Mảng quy tắc chuyển đổi tiếng Việt có dấu sang không dấu
+        $vietnamese_map = array(
+            'a' => 'á|à|ả|ã|ạ|ă|ắ|ặ|ằ|ẳ|ẵ|â|ấ|ầ|ẩ|ẫ|ậ',
+            'd' => 'đ',
+            'e' => 'é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ',
+            'i' => 'í|ì|ỉ|ĩ|ị',
+            'o' => 'ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ',
+            'u' => 'ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự',
+            'y' => 'ý|ỳ|ỷ|ỹ|ỵ',
+        );
+
+        // 3. Thực hiện lột dấu tiếng Việt
+        foreach ($vietnamese_map as $non_accented => $accented) {
+            $text = preg_replace("/($accented)/i", $non_accented, $text);
+        }
+
+        // 4. Thay thế tất cả các ký tự không phải chữ cái và số bằng dấu gạch ngang
+        $text = preg_replace('/[^a-z0-9]/i', '-', $text);
+
+        // 5. Loại bỏ các dấu gạch ngang thừa ở đầu, cuối và giữa chuỗi
+        $text = preg_replace('/-+/', '-', $text);
         $text = trim($text, '-');
-        $text = strtolower($text);
-        //$text = preg_replace('~[^-\w]+~', '', $text);
-        if (empty($text))
+
+        // 6. Trả về 'n-a' nếu chuỗi rỗng
+        if (empty($text)) {
             return 'n-a';
+        }
+
         return $text;
     }
 }

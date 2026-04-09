@@ -784,24 +784,29 @@ class Crud_model extends CI_Model
 
         // Upload different number of images according to activated theme. Data is taking from the config.json file
         $course_media_files = themeConfiguration(get_frontend_settings('theme'), 'course_media_files');
-        $previous_last_modified = $course_details['last_modified'];
+        
         foreach ($course_media_files as $course_media => $size) {
+            // Định nghĩa tên file cố định (Không chứa biến thời gian)
+            $fixed_file_name = $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id . '.jpg';
+            
+            // Đường dẫn file gốc và file đã nén
+            $original_path  = 'uploads/thumbnails/course_thumbnails/' . $fixed_file_name;
+            $optimized_path = 'uploads/thumbnails/course_thumbnails/optimized/' . $fixed_file_name;
+
+            // Nếu người dùng có upload ảnh mới
             if ($_FILES[$course_media]['name'] != "") {
+                
+                // Di chuyển ảnh mới vào đè lên ảnh gốc cũ
+                move_uploaded_file($_FILES[$course_media]['tmp_name'], $original_path);
 
-                move_uploaded_file($_FILES[$course_media]['tmp_name'], 'uploads/thumbnails/course_thumbnails/' . $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id .$data['last_modified']. '.jpg');
-
-                if (file_exists('uploads/thumbnails/course_thumbnails/' . $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id .$previous_last_modified. '.jpg')) {
-                    unlink('uploads/thumbnails/course_thumbnails/' . $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id .$previous_last_modified. '.jpg');
-                }
-
-                if (file_exists('uploads/thumbnails/course_thumbnails/optimized/' . $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id .$previous_last_modified. '.jpg')) {
-                    unlink('uploads/thumbnails/course_thumbnails/optimized/' . $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id .$previous_last_modified. '.jpg');
-                }
-            }else{
-                if (file_exists('uploads/thumbnails/course_thumbnails/' . $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id .$previous_last_modified. '.jpg')) {
-                    rename('uploads/thumbnails/course_thumbnails/' . $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id .$previous_last_modified. '.jpg', 'uploads/thumbnails/course_thumbnails/' . $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id .$data['last_modified']. '.jpg');
+                // Quan trọng: Vì có ảnh gốc mới, nên phải xóa file nén cũ trong thư mục optimized đi.
+                // Lần đầu tiên trang web tải lại, hàm get_course_thumbnail_url() (đã sửa ở bước trước) 
+                // sẽ phát hiện mất file nén và tự động cắt/nén lại 1 bản mới tinh từ ảnh gốc vừa up.
+                if (file_exists($optimized_path)) {
+                    unlink($optimized_path);
                 }
             }
+            // Nếu không upload ảnh mới -> Không làm gì cả (ảnh cũ vẫn giữ nguyên tên cố định)
         }
 
         $this->db->where('id', $course_id);
@@ -832,25 +837,51 @@ class Crud_model extends CI_Model
         $this->db->update('course', $updater);
     }
 
-    function get_course_thumbnail_url($course_id, $type = 'course_thumbnail')
-    {
-        // Course media placeholder is coming from the theme config file. Which has all the placehoder for different images. Choose like course type.
-        $course_media_placeholders = themeConfiguration(get_frontend_settings('theme'), 'course_media_placeholders');
+	function get_course_thumbnail_url($course_id, $type = 'course_thumbnail')
+	{
+		// Lấy cấu hình ảnh mặc định từ Theme
+		$course_media_placeholders = themeConfiguration(get_frontend_settings('theme'), 'course_media_placeholders');
 
-        $last_modified = $this->get_course_by_id($course_id)->row('last_modified');
+		// Lấy thời gian cập nhật để làm biến ảo chống cache (và hỗ trợ tìm file cũ)
+		$last_modified = $this->get_course_by_id($course_id)->row('last_modified');
 
-        if (file_exists('uploads/thumbnails/course_thumbnails/optimized/' . $type . '_' . get_frontend_settings('theme') . '_' . $course_id.$last_modified . '.jpg')) {
-            return base_url() . 'uploads/thumbnails/course_thumbnails/optimized/' . $type . '_' . get_frontend_settings('theme') . '_' . $course_id.$last_modified . '.jpg';
-        } elseif(file_exists('uploads/thumbnails/course_thumbnails/' . $type . '_' . get_frontend_settings('theme') . '_' . $course_id.$last_modified . '.jpg')) {
+		// 1. Khai báo TÊN FILE CỐ ĐỊNH (Chuẩn mới)
+		$new_file_name = $type . '_' . get_frontend_settings('theme') . '_' . $course_id . '.jpg';
+		$new_optimized_path = 'uploads/thumbnails/course_thumbnails/optimized/' . $new_file_name;
+		$new_original_path  = 'uploads/thumbnails/course_thumbnails/' . $new_file_name;
 
-            //resizeImage
-            resizeImage('uploads/thumbnails/course_thumbnails/' . $type . '_' . get_frontend_settings('theme') . '_' . $course_id.$last_modified . '.jpg', 'uploads/thumbnails/course_thumbnails/optimized/', 400);
+		// 2. Khai báo TÊN FILE CŨ (Chuẩn cũ, có dính kèm $last_modified)
+		$old_file_name = $type . '_' . get_frontend_settings('theme') . '_' . $course_id . $last_modified . '.jpg';
+		$old_optimized_path = 'uploads/thumbnails/course_thumbnails/optimized/' . $old_file_name;
+		$old_original_path  = 'uploads/thumbnails/course_thumbnails/' . $old_file_name;
 
-            return base_url() . 'uploads/thumbnails/course_thumbnails/' . $type . '_' . get_frontend_settings('theme') . '_' . $course_id.$last_modified . '.jpg';
-        }else{
-            return base_url() . $course_media_placeholders[$type . '_placeholder'];
-        }
-    }
+
+		// --- BẮT ĐẦU KIỂM TRA VÀ HIỂN THỊ ---
+
+		// Ưu tiên 1: Tìm xem có file chuẩn MỚI không? (Đã tối ưu)
+		if (file_exists($new_optimized_path)) {
+			return base_url($new_optimized_path) . '?v=' . $last_modified;
+		} 
+		// Ưu tiên 2: Tìm xem có file chuẩn MỚI gốc không? (Chưa tối ưu thì tối ưu nó)
+		elseif (file_exists($new_original_path)) {
+			resizeImage($new_original_path, 'uploads/thumbnails/course_thumbnails/optimized/', 400);
+			return base_url($new_original_path) . '?v=' . $last_modified;
+		}
+		// Ưu tiên 3: CHỮA CHÁY - Nếu không có file mới, thử tìm xem có file CŨ (đã tối ưu) không?
+		elseif (file_exists($old_optimized_path)) {
+			return base_url($old_optimized_path) . '?v=' . $last_modified;
+		}
+		// Ưu tiên 4: CHỮA CHÁY - Tìm xem có file CŨ (gốc) không?
+		elseif (file_exists($old_original_path)) {
+			resizeImage($old_original_path, 'uploads/thumbnails/course_thumbnails/optimized/', 400);
+			return base_url($old_original_path) . '?v=' . $last_modified;
+		} 
+		// Cuối cùng: Nếu hoàn toàn mù tịt không có ảnh nào, trả về ảnh Placeholder mặc định
+		else {
+			return base_url() . $course_media_placeholders[$type . '_placeholder'];
+		}
+	}
+
     public function get_lesson_thumbnail_url($lesson_id)
     {
 
@@ -926,6 +957,32 @@ class Crud_model extends CI_Model
     public function delete_course($course_id = "")
     {
         $course_type = $this->get_course_by_id($course_id)->row('course_type');
+		
+		// --- BẮT ĐẦU THÊM MỚI: DỌN SẠCH FILE ẢNH VẬT LÝ ---
+		$course_details = $this->get_course_by_id($course_id)->row_array();
+		if ($course_details) {
+			$last_modified = $course_details['last_modified'];
+			$course_media_files = themeConfiguration(get_frontend_settings('theme'), 'course_media_files');
+			
+			foreach ($course_media_files as $course_media => $size) {
+				$new_file = $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id . '.jpg';
+				$old_file = $course_media . '_' . get_frontend_settings('theme') . '_' . $course_id . $last_modified . '.jpg';
+
+				$paths_to_delete = [
+					'uploads/thumbnails/course_thumbnails/' . $new_file,
+					'uploads/thumbnails/course_thumbnails/optimized/' . $new_file,
+					'uploads/thumbnails/course_thumbnails/' . $old_file,
+					'uploads/thumbnails/course_thumbnails/optimized/' . $old_file
+				];
+
+				foreach ($paths_to_delete as $path) {
+					if (file_exists($path)) {
+						unlink($path); 
+					}
+				}
+			}
+		}
+		// --- KẾT THÚC THÊM MỚI ---
 
         $this->db->where('id', $course_id);
         $this->db->delete('course');

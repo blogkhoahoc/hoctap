@@ -166,51 +166,74 @@ class Home extends CI_Controller
         $this->session->set_userdata('layout', $layout);
     }
 
-    public function course($slug = "", $course_id = "")
-    {
-        //course_addon start
+	public function course($slug = "", $course_id = "")
+	{
+		//course_addon start
+		if (addon_status('affiliate_course')) {
+			if (isset($_GET['ref'])) {
+				$CI    = &get_instance();
+				$CI->load->model('addons/affiliate_course_model');
+				$affiliator_details_for_checking_active_status = $_GET['ref'];
+				$check_validity = $CI->affiliate_course_model->get_user_by_unique_identifier($affiliator_details_for_checking_active_status);
+				
+				if ($check_validity['status'] == 1 && $check_validity['user_id']!=$this->session->userdata('user_id')) {
+					if (isset($_GET['ref'])) {
+						$this->session->set_userdata('course_referee', $_GET['ref']);
+						$this->session->set_userdata('course_reffer_id', $course_id);
+					} elseif ($this->session->userdata('user_id') != $course_id) {
+						$this->session->unset_userdata('course_referee');
+						$this->session->unset_userdata('course_reffer_id');
+					}
+				} else {
+					$this->session->set_flashdata('error_message', get_phrase('you can not reffer yourself'));
+					redirect(site_url('home/courses'), 'refresh');
+				}
+			}
+		}
+		//course_addon end 
 
 
-        if (addon_status('affiliate_course')) {
-            if (isset($_GET['ref'])) {
-                $CI    = &get_instance();
-                $CI->load->model('addons/affiliate_course_model');
-                $affiliator_details_for_checking_active_status = $_GET['ref'];
-                $check_validity = $CI->affiliate_course_model->get_user_by_unique_identifier($affiliator_details_for_checking_active_status);
-           
-                if ($check_validity['status'] == 1 && $check_validity['user_id']!=$this->session->userdata('user_id')) {
+		// --- BẮT ĐẦU KIỂM TRA LỖI 404 ---
+		
+		// 1. Link không có đủ cả 2 thành phần (Slug và ID) -> 404
+		if (empty($course_id) || empty($slug)) {
+			$page_data['page_name'] = '404';
+			$page_data['page_title'] = site_phrase('404_page_not_found');
+			$this->load->view('frontend/' . get_frontend_settings('theme') . '/index', $page_data);
+			return; 
+		}
 
-                    if (isset($_GET['ref'])) {
-                        $this->session->set_userdata('course_referee', $_GET['ref']);
-                        $this->session->set_userdata('course_reffer_id', $course_id);
-                    } elseif ($this->session->userdata('user_id') != $course_id) {
-                        $this->session->unset_userdata('course_referee');
-                        $this->session->unset_userdata('course_reffer_id');
-                    }
-                }
-                else
-                {
-                    $this->session->set_flashdata('error_message', get_phrase('you can not reffer yourself'));
-                    redirect(site_url('home/courses'), 'refresh');
-            
-                }
-            }
-        }
-        
+		// Lấy dữ liệu khóa học
+		$course_details = $this->crud_model->get_course_by_id($course_id)->row_array();
+
+		// 2. ID không tồn tại hoặc khóa học bị ẩn -> 404
+		if (empty($course_details) || $course_details['status'] != 'active') {
+			$page_data['page_name'] = '404';
+			$page_data['page_title'] = site_phrase('404_page_not_found');
+			$this->load->view('frontend/' . get_frontend_settings('theme') . '/index', $page_data);
+			return; 
+		}
+
+		// 3. KIỂM TRA SLUG: Tạo slug chuẩn từ Tên khóa học để đối chiếu với url
+		$expected_slug = slugify($course_details['title']);
+		
+		if ($slug != $expected_slug) {
+			$page_data['page_name'] = '404';
+			$page_data['page_title'] = site_phrase('404_page_not_found');
+			$this->load->view('frontend/' . get_frontend_settings('theme') . '/index', $page_data);
+			return; 
+		}
+		// --- KẾT THÚC KIỂM TRA LỖI 404 ---
 
 
+		// Mọi thứ hoàn hảo, cho phép hiển thị trang chi tiết
+		$this->access_denied_courses($course_id);
+		$page_data['course_id'] = $course_id;
+		$page_data['page_name'] = "course_page";
+		$page_data['page_title'] = site_phrase('course');
 
-        //course_addon end 
-
-
-        $this->access_denied_courses($course_id);
-        $page_data['course_id'] = $course_id;
-        $page_data['page_name'] = "course_page";
-        $page_data['page_title'] = site_phrase('course');
-
-    
-        $this->load->view('frontend/' . get_frontend_settings('theme') . '/index', $page_data);
-    }
+		$this->load->view('frontend/' . get_frontend_settings('theme') . '/index', $page_data);
+	}    
 
     public function instructor_page($instructor_id = "")
     {
