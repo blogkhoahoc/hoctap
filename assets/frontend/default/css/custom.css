@@ -719,3 +719,76 @@ section.featured-instructor{
     background-color: #095299;
     border-color: #095299;
 }
+
+/* ============================================================== */
+/* TỐI ƯU HIỂN THỊ TÊN BÀI HỌC DÀI BỊ DÍNH CHÙM (FLEXBOX)         */
+/* ============================================================== */
+
+.course-curriculum-accordion .lecture-list li,
+.course-curriculum-box .lecture-list li {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap; /* Cấm rớt dòng trên Desktop */
+}
+
+.course-curriculum-accordion .lecture-list li .lecture-title,
+.course-curriculum-box .lecture-list li .lecture-title {
+    flex: 1; 
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    margin-right: 15px; 
+}
+
+.course-curriculum-accordion .lecture-list li .lecture-time,
+.course-curriculum-box .lecture-list li .lecture-time,
+.course-curriculum-accordion .lecture-list li .lecture-info,
+.course-curriculum-box .lecture-list li .lecture-info {
+    flex-shrink: 0 !important; 
+    float: none !important; 
+    display: flex;
+    align-items: center;
+    gap: 10px; 
+}
+
+/* ============================================================== */
+/* GIAO DIỆN MOBILE: HIỂN THỊ FULL TÊN BÀI & THỜI LƯỢNG RỚT DÒNG   */
+/* ============================================================== */
+
+@media only screen and (max-width: 768px) {
+    /* Ép khung bài học thành cột dọc trên màn hình nhỏ */
+    .course-curriculum-accordion .lecture-list li,
+    .course-curriculum-box .lecture-list li {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 12px 15px;
+    }
+
+    /* Nhả lệnh cắt chữ, cho phép tên bài rớt dòng tự nhiên */
+    .course-curriculum-accordion .lecture-list li .lecture-title,
+    .course-curriculum-box .lecture-list li .lecture-title {
+        white-space: normal !important; 
+        display: block !important;
+        width: 100%;
+        margin-right: 0 !important;
+        line-height: 1.5; /* Giãn dòng cho chữ dễ đọc hơn */
+    }
+
+    /* Đẩy phần thông tin (Preview / Thời gian) xuống dưới cùng lề trái */
+    .course-curriculum-accordion .lecture-list li .lecture-info,
+    .course-curriculum-box .lecture-list li .lecture-info {
+        width: 100%;
+        margin-top: 10px; /* Cách tên bài học phía trên 10px */
+        justify-content: flex-start !important; /* Dóng sang trái */
+    }
+
+    /* Trang trí phần thời gian thành dạng Tag (Nhãn) cho bắt mắt */
+    .course-curriculum-accordion .lecture-list li .lecture-time {
+        background-color: #f1f3f5; /* Nền xám nhạt */
+        padding: 4px 10px;
+        border-radius: 6px; /* Bo góc mềm mại */
+        font-size: 12px;
+        color: #555;
+    }
+}

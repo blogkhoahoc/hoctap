@@ -163,7 +163,9 @@ $instructor_details = $this->user_model->get_all_user($course_details['user_id']
                       <?php $lessons = $this->crud_model->get_lessons('section', $section['id'])->result_array();
                       foreach ($lessons as $lesson) : ?>
                         <li class="lecture has-preview text-14px ">
-                          <span class="lecture-title <?php if ($lesson['is_free'] == 1) echo 'text-primary'; ?>" onclick="go_course_playing_page('<?php echo $course_details['id']; ?>', '<?php echo $lesson['id']; ?>')"><?php echo $lesson['title']; ?></span>
+							<span class="lecture-title <?php if ($lesson['is_free'] == 1) echo 'text-primary'; ?>" title="<?php echo $lesson['title']; ?>" onclick="go_course_playing_page('<?php echo $course_details['id']; ?>', '<?php echo $lesson['id']; ?>')">
+								<?php echo $lesson['title']; ?>
+							</span>                          
 
                           <div class="lecture-info float-lg-end">
                             <?php if ($lesson['is_free'] == 1) : ?>
@@ -173,10 +175,11 @@ $instructor_details = $this->user_model->get_all_user($course_details['user_id']
                               </span>
                             <?php endif; ?>
 
-                            <span class="lecture-time ps-2">
-                              <?php if ($lesson['duration'] == "") echo '<span class="opacity-0">.</span>'; ?>
-                              <?php echo $lesson['duration']; ?>
-                            </span>
+							<?php if (!empty($lesson['duration'])) : ?>
+								<span class="lecture-time ps-2">
+								  <?php echo $lesson['duration']; ?>
+								</span>
+							<?php endif; ?>                            
                           </div>
                         </li>
                       <?php endforeach; ?>
