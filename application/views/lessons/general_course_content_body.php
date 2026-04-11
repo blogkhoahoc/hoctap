@@ -1,3 +1,17 @@
+<?php
+// TÌM ID BÀI TRƯỚC & BÀI SAU
+$all_lessons = array();
+$sections = $this->crud_model->get_section('course', $course_id)->result_array();
+foreach ($sections as $section) {
+    $lessons_in_section = $this->crud_model->get_lessons('section', $section['id'])->result_array();
+    foreach ($lessons_in_section as $lesson) {
+        $all_lessons[] = $lesson['id'];
+    }
+}
+$current_index = array_search($lesson_id, $all_lessons);
+$prev_lesson_id = ($current_index > 0) ? $all_lessons[$current_index - 1] : null;
+$next_lesson_id = ($current_index < count($all_lessons) - 1) ? $all_lessons[$current_index + 1] : null;
+?>
 <div class="col-lg-9 order-1 course_col" id = "video_player_area">
     <!-- <div class="" style="background-color: #333;"> -->
     <?php if($show_locked_message && $course_details['enable_drip_content']): ?>
@@ -188,6 +202,24 @@
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
+        </div>
+
+		<div class="d-flex justify-content-between align-items-center mt-4 mb-4 px-3 w-100" style="gap: 10px;">
+            <div>
+                <?php if ($prev_lesson_id): ?>
+                    <a href="<?php echo site_url('home/lesson/'.slugify($course_details['title']).'/'.$course_id.'/'.$prev_lesson_id); ?>" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center" style="border-radius: 20px; padding: 6px 16px; font-size: 14px; font-weight: 500; transition: all 0.2s;">
+                        <i class="fas fa-chevron-left" style="font-size: 12px; margin-right: 6px;"></i> Bài trước
+                    </a>
+                <?php endif; ?>
+            </div>
+            
+            <div>
+                <?php if ($next_lesson_id): ?>
+                    <a href="<?php echo site_url('home/lesson/'.slugify($course_details['title']).'/'.$course_id.'/'.$next_lesson_id); ?>" class="btn btn-info btn-sm d-inline-flex align-items-center" style="border-radius: 20px; padding: 6px 16px; font-size: 14px; font-weight: 500; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.2s; color: #fff;">
+                        Bài tiếp <i class="fas fa-chevron-right" style="font-size: 12px; margin-left: 6px;"></i>
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="" style="margin: 20px 0;" id = "lesson-summary">

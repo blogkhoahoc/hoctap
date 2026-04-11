@@ -662,6 +662,30 @@ class Home extends CI_Controller
         }
 
         $course_details = $this->crud_model->get_course_by_id($course_id)->row_array();
+		
+		// ==============================================================
+        // BẮT ĐẦU VÁ LỖI BẢO MẬT (BYPASS BÀI HỌC VÀ SLUG)
+        // ==============================================================
+        // 1. Kiểm tra Khóa học có tồn tại và SLUG trên URL có khớp với khóa học không?
+        if (!$course_details || slugify($course_details['title']) != $slug) {
+            // Sai thì văng ra trang lỗi 404 của template
+            redirect(site_url('home/page_not_found'), 'refresh');
+        }
+
+        // 2. Kiểm tra tính hợp lệ của bài học (Nếu URL có chứa ID bài học)
+        if (!empty($lesson_id)) {
+            // Tìm ID khóa học gốc của bài học này trong Database
+            $actual_course_id_of_lesson = $this->db->get_where('lesson', array('id' => $lesson_id))->row('course_id');
+            
+            // Nếu bài học không tồn tại HOẶC bài học đó KHÔNG thuộc về khóa học trên URL -> 404
+            if (!$actual_course_id_of_lesson || $actual_course_id_of_lesson != $course_id) {
+                redirect(site_url('home/page_not_found'), 'refresh');
+            }
+        }
+        // ==============================================================
+        // KẾT THÚC VÁ LỖI BẢO MẬT
+        // ==============================================================
+		
         $course_instructor_ids = explode(',', $course_details['user_id']);
         //this function saved current lesson id and return previous lesson id if $lesson_id param is empty
         $lesson_id = $this->crud_model->update_last_played_lesson($course_id, $lesson_id);
