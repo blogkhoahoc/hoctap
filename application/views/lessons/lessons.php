@@ -12,27 +12,48 @@ $course_details_url = site_url("home/course/".slugify($course_details['title']).
 ?>
 <div class="container-fluid course_container">
     <!-- Top bar -->
-    <div class="row">
-        <div class="col-md-12 col-lg-7 col-xl-9 course_header_col d-md-flex d-sm-grid">
-            <h5>
-                <img src="<?php echo base_url('uploads/system/').get_frontend_settings('small_logo');?>" height="25"> |
-                <?php echo $course_details['title']; ?>
-            </h5>
-            <?php
-                if(!is_array(json_decode($watch_history['completed_lesson'], true))){
-                    $completed_lesson_id_rr = array();
-                }else{
-                    $completed_lesson_id_rr = json_decode($watch_history['completed_lesson'], true);
-                }
-            ?>
-            <span class="d-inline-block ml-auto"><?php echo $watch_history['course_progress'].'% '.site_phrase('completed'); ?>(<?php echo count($completed_lesson_id_rr); ?>/<?php echo $this->crud_model->get_lessons('course', $course_details['id'])->num_rows(); ?>)</span>
-        </div>
-        <div class="col-md-12 col-lg-5 col-xl-3 course_header_col text-right">
-            <a href="javascript:;" class="course_btn" onclick="toggle_lesson_view()"><i class="fa fa-arrows-alt-h"></i></a>
-            <a href="<?php echo $my_course_url; ?>" class="course_btn"> <i class="fa fa-chevron-left"></i> <?php echo get_phrase($btn_title); ?></a>
-            <a href="<?php echo $course_details_url; ?>" class="course_btn"><?php echo get_phrase('course_details'); ?> <i class="fa fa-chevron-right"></i></a>
-        </div>
-    </div>
+    <div class="lesson-header-modern">
+		<div class="header-left">
+			<a href="<?php echo $my_course_url; ?>" class="btn-pill-back desktop-only">
+				<i class="fas fa-chevron-left"></i>
+				<span><?php echo get_phrase($btn_title); ?></span>
+			</a>
+			<h6 class="header-title"><?php echo $course_details['title']; ?></h6>
+		</div>
+
+		<div class="header-right">
+			<?php
+				$completed_lessons = is_array(json_decode($watch_history['completed_lesson'], true)) ? json_decode($watch_history['completed_lesson'], true) : [];
+				$total_lessons = $this->crud_model->get_lessons('course', $course_details['id'])->num_rows();
+			?>
+			<div class="header-progress">
+				<span class="progress-label">
+					<?php echo $watch_history['course_progress']; ?>%
+					<span class="lesson-count">(<?php echo count($completed_lessons); ?>/<?php echo $total_lessons; ?> bài)</span>
+				</span>
+				<div class="progress-track">
+					<div class="progress-fill" style="width: <?php echo $watch_history['course_progress']; ?>%;"></div>
+				</div>
+			</div>
+
+			<div class="header-btns">
+				<a href="<?php echo $my_course_url; ?>" class="btn-action-header mobile-only-btn">
+					<i class="fas fa-th-list"></i>
+					<span>Khóa học</span>
+				</a>
+
+				<a href="javascript:;" class="btn-action-header btn-expand-desktop" onclick="toggle_lesson_view()">
+					<i class="fas fa-arrows-alt-h"></i>
+					<span>Mở rộng</span>
+				</a>
+
+				<a href="<?php echo $course_details_url; ?>" class="btn-action-header">
+					<i class="fas fa-info-circle"></i>
+					<span>Chi tiết</span>
+				</a>
+			</div>
+		</div>
+	</div>
 
     <div class="row" id = "lesson-container">
         <!-- Course sections and lesson selector sidebar starts-->

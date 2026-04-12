@@ -114,3 +114,191 @@
   border-top-left-radius: 0px !important;
   border-bottom-left-radius: 0px !important;
 }
+
+.lesson-header-modern {
+    background-color: #1e293b; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    height: 80px; 
+    position: sticky;
+    top: 0;
+    z-index: 1060;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    margin: -15px -15px 25px -15px; 
+}
+
+/* --- KHU VỰC BÊN TRÁI --- */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+    min-width: 0;
+}
+
+.btn-pill-back {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    padding: 9px 20px;
+    color: #ffffff !important;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none !important;
+    transition: 0.2;
+    flex-shrink: 0;
+}
+
+.btn-pill-back:hover {
+    background-color: #ffffff;
+    color: #1e293b !important;
+}
+
+.header-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+    padding-left: 20px;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* --- KHU VỰC BÊN PHẢI --- */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.header-progress {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.progress-label {
+    /* TĂNG CỠ CHỮ TRÊN DESKTOP */
+    font-size: 17px; 
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.progress-label span.lesson-count {
+    font-weight: 400; 
+    opacity: 0.85; 
+    font-size: 14px; 
+    margin-left: 5px;
+}
+
+.progress-track {
+    width: 150px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #10b981;
+    border-radius: 10px;
+}
+
+.header-btns {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-action-header {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #ffffff !important;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none !important;
+    transition: 0.2s;
+}
+
+.btn-action-header:hover {
+    background-color: #ffffff;
+    color: #1e293b !important;
+}
+
+/* === TỐI ƯU MOBILE CHI TIẾT === */
+@media (max-width: 768px) {
+    .lesson-header-modern {
+        height: auto;
+        flex-direction: column;
+        position: sticky; 
+        top: 0;
+        padding: 30px 15px 15px 15px; 
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .btn-pill-back.desktop-only { display: none !important; }
+
+    .header-title {
+        border: none;
+        padding: 0;
+        font-size: 19px; 
+        font-weight: 700;
+        -webkit-line-clamp: unset;
+    }
+
+    .header-right {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .header-progress { 
+        justify-content: space-between; 
+    }
+    
+    .progress-label {
+        font-size: 15px; /* Giữ cỡ vừa phải trên mobile */
+    }
+
+    .progress-track { flex: 1; margin-left: 12px; }
+
+    .header-btns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .btn-action-header { 
+        justify-content: center; 
+        padding: 7px 10px; 
+        font-size: 13px; 
+    }
+    
+    .btn-expand-desktop { display: none !important; }
+}
+
+@media (min-width: 769px) {
+    .mobile-only-btn { display: none !important; }
+}
