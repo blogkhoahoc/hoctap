@@ -923,15 +923,16 @@ class Crud_model extends CI_Model
 
     public function get_courses_by_search_string($search_string = "", $per_page = "", $uri_segment = "")
     {
+        // 1. Điều kiện về loại khóa học
         if (!addon_status('scorm_course')) {
-            $this->db->group_start();
             $this->db->where('course_type', 'general');
-        } else {
-            $this->db->group_start();
         }
-        $this->db->where('status', 'active');
-        $this->db->group_end();
 
+        // 2. BẮT BUỘC TRẠNG THÁI PHẢI LÀ ACTIVE (Đã duyệt)
+        $this->db->where('status', 'active');
+
+        // 3. Nhóm các điều kiện tìm kiếm (Tiêu đề HOẶC mô tả HOẶC...)
+        $this->db->group_start();
         $this->db->like('title', $search_string);
         $this->db->or_like('short_description', $search_string);
         $this->db->or_like('description', $search_string);
@@ -940,6 +941,7 @@ class Crud_model extends CI_Model
         $this->db->or_like('requirements', $search_string);
         $this->db->or_like('meta_keywords', $search_string);
         $this->db->or_like('meta_description', $search_string);
+        $this->db->group_end(); // Đóng nhóm điều kiện tìm kiếm
 
         if ($per_page != "" || $uri_segment != "") {
             return $this->db->get('course', $per_page, $uri_segment);
