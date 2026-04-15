@@ -94,4 +94,8 @@ $route['schedules_bookings/(:any)'] = "addons/tutor_booking/tutor_details/$1";
 $route['my_bookings'] = "addons/tutor_booking/booked_schedules_student";
 //End tutor booking
 
+// ===== THÊM ĐOẠN NÀY CHO SITEMAP =====
+$route['sitemap\.xml'] = 'sitemap';
+// =====================================
+
 $route['translate_uri_dashes'] = FALSE;
