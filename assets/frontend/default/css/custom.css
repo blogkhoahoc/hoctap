@@ -792,3 +792,244 @@ section.featured-instructor{
         color: #555;
     }
 }
+
+/* Tổng thể khu vực Profile */
+.profile-nav-section {
+    background-color: #f8f9fa;
+    padding-bottom: 40px;
+}
+
+/* Header chứa ảnh bìa và tiêu đề */
+.profile-header-box {
+    padding: 60px 0;
+    background: linear-gradient(135deg, #2c3e50, #4ca1af); /* Màu gradient hiện đại */
+    color: white;
+    margin-bottom: 40px;
+}
+
+.profile-header-box h1 {
+    font-weight: 700;
+    font-size: 28px;
+    margin: 0;
+}
+
+/* Container bao quanh menu */
+.modern-grid-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Tự động chia cột trên PC */
+    gap: 15px;
+}
+
+/* Từng item trong menu */
+.modern-grid-nav li a {
+    display: flex;
+    flex-direction: column; /* Icon nằm trên, chữ nằm dưới */
+    align-items: center;
+    justify-content: center;
+    padding: 20px 10px;
+    background: #fff;
+    border: 1px solid #edf2f7;
+    border-radius: 12px;
+    color: #4a5568;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    height: 100%;
+}
+
+/* Icon trong menu */
+.modern-grid-nav li a i {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #718096;
+    transition: color 0.3s;
+}
+
+.modern-grid-nav li a span {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Hiệu ứng Hover trên PC */
+.modern-grid-nav li a:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: #3182ce;
+    color: #3182ce;
+}
+
+.modern-grid-nav li a:hover i {
+    color: #3182ce;
+}
+
+/* Mục đang được chọn (Active) */
+.modern-grid-nav li.active a {
+    background: #ebf8ff;
+    border: 2px solid #3182ce;
+    color: #2c5282;
+}
+
+.modern-grid-nav li.active a i {
+    color: #3182ce;
+}
+
+/* Badge tin nhắn */
+.msg-count-badge {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: #f56565;
+    color: white;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.msg-item { position: relative; }
+
+/* CSS ĐẶC BIỆT CHO ĐIỆN THOẠI - KHÔNG VUỐT NGANG */
+@media (max-width: 767px) {
+    .profile-header-box { padding: 40px 0; margin-bottom: 20px; }
+    
+    .modern-grid-nav {
+        grid-template-columns: repeat(2, 1fr); /* Ép hiển thị 2 cột cực đẹp trên Mobile */
+        gap: 10px;
+        padding: 0 10px;
+    }
+    
+    .modern-grid-nav li a {
+        padding: 15px 5px;
+        border-radius: 10px;
+    }
+    
+    .modern-grid-nav li a i {
+        font-size: 20px;
+        margin-bottom: 5px;
+    }
+    
+    .modern-grid-nav li a span {
+        font-size: 13px;
+    }
+}
+
+/* ========================================================
+   GIAO DIỆN DANH MỤC HÀNG ĐẦU (TOP CATEGORIES) - BẢN NHỎ GỌN
+======================================================== */
+
+/* Khung lưới */
+.modern-category-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Cố định 4 cột trên Máy tính cho thẻ thon gọn */
+    gap: 20px; /* Thu hẹp khoảng cách giữa các thẻ */
+    padding: 10px 0;
+}
+
+/* Thiết kế từng Thẻ (Card) */
+.modern-category-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 15px; /* Giảm padding để thẻ lùn xuống và gọn gàng hơn */
+    text-decoration: none !important;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Vòng tròn chứa Icon */
+.category-icon-wrapper {
+    width: 60px; /* Thu nhỏ vòng tròn */
+    height: 60px; 
+    border-radius: 50%;
+    background-color: #ebf8ff; 
+    color: #3182ce; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px; /* Thu nhỏ Icon */
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+/* Phần chữ Tiêu đề danh mục */
+.category-info h3 {
+    font-size: 15px; /* Giảm font chữ một xíu */
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+    transition: color 0.3s;
+}
+
+/* Phần chữ Số lượng khóa học */
+.category-info .course-count {
+    font-size: 12px;
+    color: #718096;
+    margin: 0;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+/* Hiệu ứng rê chuột (Hover) */
+.modern-category-card:hover {
+    transform: translateY(-5px); /* Nảy nhẹ lên */
+    box-shadow: 0 10px 25px rgba(49, 130, 206, 0.1);
+    border-color: #3182ce;
+}
+
+.modern-category-card:hover .category-icon-wrapper {
+    background-color: #3182ce;
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+.modern-category-card:hover .category-info h3,
+.modern-category-card:hover .category-info .course-count {
+    color: #3182ce;
+}
+
+/* ========================================================
+   TỐI ƯU HÓA MOBILE & TABLET
+======================================================== */
+
+/* Màn hình Tablet (iPad) - Hiển thị 3 cột */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .modern-category-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Màn hình Điện thoại - Hiển thị 2 cột */
+@media (max-width: 767px) {
+    .modern-category-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 0 10px;
+    }
+    
+    .modern-category-card {
+        padding: 15px 10px;
+    }
+    
+    .category-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+    
+    .category-info h3 {
+        font-size: 13px;
+    }
+    
+    .category-info .course-count {
+        font-size: 11px;
+    }
+}
