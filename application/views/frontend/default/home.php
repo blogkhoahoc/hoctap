@@ -434,65 +434,94 @@
 </section>
 
 
-<?php $top_instructor_ids = $this->crud_model->get_top_instructor(10); ?>
-<?php if(count($top_instructor_ids) > 0): ?>
-    <section class="featured-instructor">
-        <div class="container-lg">
-            <div class="row">
-                <div class="col">
-                    <h3 class="text-center mb-5">
-                        <span class="header-underline-2"><?php echo site_phrase('featured_instructor'); ?></span>
-                    </h3>
-                </div>
-            </div>
-            <div class="row justify-content-center">
-                <div class="col-md-9 col-lg-7 ">
-                    <div class="animated-loader"><div class="spinner-border text-secondary" role="status"></div></div>
-                    <div class="top-istructor-slick shown-after-loading" style="display: none;">
-                        <?php foreach($top_instructor_ids as $top_instructor_id): ?>
-                            <?php $top_instructor = $this->user_model->get_all_user($top_instructor_id['creator'])->row_array(); ?>
-                            <div class="d-xl-flex text-center text-md-start radius-10 p-0 bg-sub-primary pt-4 pt-xl-0 position-relative mx-2">
-                                <div class="top-instructor-img me-auto ms-auto ms-xl-0">
-                                    <a href="<?php echo site_url('home/instructor_page/'.$top_instructor['id']); ?>">
-                                        <img src="<?php echo $this->user_model->get_user_image_url($top_instructor['id']); ?>" width="100%">
-                                    </a>
-                                </div>
-                                <div class="top-instructor-details ps-3 pe-3 pe-xl-5 py-3 py-xl-0 text-center text-xl-start">
-                                    <a class="text-decoration-none" href="<?php echo site_url('home/instructor_page/'.$top_instructor['id']); ?>">
-                                        <h4 class="mb-1 fw-700"><?php echo $top_instructor['first_name'].' '.$top_instructor['last_name']; ?></h4>
-                                        <span class="fw-500 text-muted text-14px ellipsis-line-5 mb-3"><?php echo $top_instructor['title']; ?></span>
+<?php 
+// 1. Lấy dữ liệu khóa học bán chạy
+$this->db->select('course_id, COUNT(id) as total_enrol');
+$this->db->from('enrol');
+$this->db->group_by('course_id');
+$this->db->order_by('total_enrol', 'desc');
+$top_enrols = $this->db->get()->result_array();
 
-                                        <div class="rating">
-                                          <div class="d-inline-block mb-2">
-                                            <span class="text-dark fw-800 text-muted ms-1 text-13px"><?php echo $this->crud_model->get_instructor_wise_course_ratings($top_instructor['id'], 'course')->num_rows() . ' ' . site_phrase('reviews'); ?></span>
-                                            |
-                                            <span class="text-dark fw-800 text-13px text-muted mx-1">
-                                              <?php $course_ids = $this->crud_model->get_instructor_wise_courses($top_instructor['id'], 'simple_array');
-                                              $this->db->select('user_id');
-                                              $this->db->distinct();
-                                              $this->db->where_in('course_id', $course_ids);
-                                              echo $this->db->get('enrol')->num_rows() . ' ' . site_phrase('students'); ?>
-                                            </span>
-                                            |
-                                            <span class="text-dark fw-800 text-14px text-muted">
-                                              <?php echo $this->crud_model->get_instructor_wise_courses($top_instructor['id'])->num_rows() . ' ' . site_phrase('courses'); ?>
-                                            </span>
-                                          </div>
-                                        </div>
+$best_selling_courses = array();
+foreach($top_enrols as $enrol_data) {
+    $course_details = $this->crud_model->get_course_by_id($enrol_data['course_id'])->row_array();
+    if ($course_details && $course_details['status'] == 'active' && $course_details['is_free_course'] != 1) {
+        $course_details['total_enrol'] = $enrol_data['total_enrol'];
+        $best_selling_courses[] = $course_details;
+    }
+    if (count($best_selling_courses) == 8) break;
+}
+?>
 
-                                        <?php $skills = explode(',', $top_instructor['skills']); ?>
-                                        <?php foreach($skills as $skill): ?>
-                                          <span class="badge bg-primary text-12px my-1 py-2"><?php echo $skill; ?></span>
-                                        <?php endforeach; ?>
-                                    </a>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
+<?php if(count($best_selling_courses) > 0): ?>
+<section class="course-carousel-area bg-light pt-5 pb-5" style="margin-top: 50px;">
+    <div class="container-lg">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h3 class="fw-bold"><span class="header-underline-2">Khóa Học Bán Chạy Nhất</span></h3>
             </div>
         </div>
-    </section>
+        
+        <div class="row">
+            <?php foreach($best_selling_courses as $top_course): 
+                $instructor_details = $this->user_model->get_all_user($top_course['user_id'])->row_array();
+                $lessons = $this->crud_model->get_lessons('course', $top_course['id']);
+                $course_duration = $this->crud_model->get_total_duration_of_lesson_by_course_id($top_course['id']);
+                
+                // Lấy tên danh mục
+                $category_details = $this->crud_model->get_category_details_by_id($top_course['sub_category_id'])->row_array();
+                $category_name = ($category_details) ? $category_details['name'] : 'Khóa học';
+
+                // Tính điểm đánh giá
+                $total_rating =  $this->crud_model->get_ratings('course', $top_course['id'], true)->row()->rating;
+                $num_ratings = $this->crud_model->get_ratings('course', $top_course['id'])->num_rows();
+                $avg_rating = ($num_ratings > 0) ? number_format($total_rating / $num_ratings, 1) : '0.0';
+            ?>
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <a href="<?php echo site_url('home/course/'.rawurlencode(slugify($top_course['title'])).'/'.$top_course['id']); ?>" class="text-decoration-none">
+                    <div class="refined-course-card">
+                        <div class="refined-course-image">
+                            <div class="refined-category-badge"><?php echo $category_name; ?></div>
+                            <img src="<?php echo $this->crud_model->get_course_thumbnail_url($top_course['id']); ?>" alt="Course Thumbnail">
+                        </div>
+                        
+                        <div class="refined-course-body">
+                            <h5 class="refined-course-title"><?php echo $top_course['title']; ?></h5>
+                            <div class="refined-course-instructor">
+                                Bởi <strong><?php echo $instructor_details['first_name'].' '.$instructor_details['last_name']; ?></strong>
+                            </div>
+                            
+                            <div class="refined-course-meta">
+                                <div class="meta-left">
+                                    <span><i class="fas fa-play-circle"></i><?php echo $lessons->num_rows(); ?> Bài</span>
+                                    <span class="ms-2"><i class="fas fa-users"></i><?php echo number_format($top_course['total_enrol']); ?> Học viên</span>
+                                </div>
+                                <div class="meta-right">
+                                    <span><i class="far fa-clock"></i><?php echo $course_duration; ?></span>
+                                </div>
+                            </div>
+                            
+                            <div class="refined-course-footer">
+                                <div class="refined-course-rating">
+                                    <?php echo $avg_rating; ?> <i class="fas fa-star"></i> <span class="text-muted fw-normal" style="font-size:11px;">(<?php echo $num_ratings; ?>)</span>
+                                </div>
+                                <div class="refined-course-price">
+                                    <?php if ($top_course['discount_flag'] == 1): ?>
+                                        <del><?php echo currency($top_course['price']); ?></del>
+                                        <span style="color: #ff3366;"><?php echo currency($top_course['discounted_price']); ?></span>
+                                    <?php else: ?>
+                                        <span><?php echo currency($top_course['price']); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
 <?php endif; ?>
 
 
