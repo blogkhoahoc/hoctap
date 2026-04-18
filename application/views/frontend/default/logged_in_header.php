@@ -30,17 +30,22 @@ $user_details = $this->user_model->get_user($this->session->userdata('user_id'))
                 <a class="navbar-brand btn-hover-gray text-14px ms-2 me-0 <?php if (isset($page_url) && $custom_page_menu['page_url'] == $page_url) echo 'active'; ?>" style="border: 1px solid transparent; margin: 0px; padding: 0px 8px; width: max-content; border-radius: 5px; height: 40px; line-height: 40px;" href="<?php echo site_url('page/' . $custom_page_menu['page_url']); ?>"><?php echo $custom_page_menu['button_title']; ?></a></li>
             <?php endforeach; ?>
 
-            <?php if (get_settings('allow_instructor') == 1) : ?>
-                <div class="instructor-box menu-icon-box ms-md-3">
+            <?php 
+            // ĐIỀU KIỆN MỚI: Chỉ hiển thị nếu role của user đang đăng nhập có is_instructor = 1
+            if ($user_details['is_instructor'] == 1) : ?>
+                <div class="instructor-box menu-icon-box ms-md-3 d-none d-lg-block">
                     <div class="icon">
-                        <a href="<?php echo site_url('user'); ?>" style="border: 1px solid transparent; margin: 0px; padding: 0px 10px; font-size: 14px; width: max-content; border-radius: 5px; height: 40px; line-height: 40px;"><?php echo site_phrase('instructor'); ?></a>
+                        <a href="<?php echo site_url('user'); ?>" style="border: 1px solid #dee2e6; margin: 0px; padding: 0px 18px; font-size: 14px; width: max-content; border-radius: 50px; height: 38px; line-height: 36px; font-weight: 500; color: #5a5a5a; transition: all 0.3s; background-color: #f8f9fa;">
+                            <i class="fas fa-chalkboard-teacher me-1"></i> <?php echo site_phrase('instructor'); ?>
+                        </a>
                     </div>
                 </div>
             <?php endif; ?>
-
-            <div class="instructor-box menu-icon-box">
+            <div class="instructor-box menu-icon-box d-none d-lg-block">
                 <div class="icon">
-                    <a href="<?php echo site_url('home/my_courses'); ?>" style="border: 1px solid transparent; margin: 0px; padding: 0px 10px; font-size: 14px; width: max-content; border-radius: 5px; height: 40px; line-height: 40px;"><?php echo site_phrase('my_courses'); ?></a>
+                    <a href="<?php echo site_url('home/my_courses'); ?>" style="border: 1px solid transparent; margin: 0px; padding: 0px 18px; font-size: 14px; width: max-content; border-radius: 50px; height: 38px; line-height: 38px; font-weight: 500; color: #fff; background-color: #ec5252; box-shadow: 0 4px 6px rgba(236,82,82,.2); transition: all 0.3s;">
+                        <i class="fas fa-play-circle me-1"></i> <?php echo site_phrase('my_courses'); ?>
+                    </a>
                 </div>
             </div>
 
