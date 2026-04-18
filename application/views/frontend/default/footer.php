@@ -79,7 +79,7 @@
           <img src="<?php echo base_url('uploads/system/'.get_frontend_settings('light_logo')); ?>" width="160">
         </div>
         <div class="col-md-4 ps-4 text-13px pt-2 text-start text-md-center">
-          &copy; 2022 <?php echo get_settings('system_name'); ?>, <?php echo site_phrase('all_rights_reserved'); ?>
+          &copy; <?php echo date('Y'); ?> <?php echo get_settings('system_name'); ?>, <?php echo site_phrase('all_rights_reserved'); ?>
           <br>
           <?php if(get_settings('footer_text')): ?>
             <a class="link-secondary footer-hover-link" href="<?php echo get_settings('footer_link'); ?>"><?php echo site_phrase(get_settings('footer_text')); ?></a>

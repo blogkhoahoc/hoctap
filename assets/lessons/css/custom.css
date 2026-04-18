@@ -1,3 +1,6 @@
+/* =======================================================
+   CODE GỐC CỦA BẠN (KHÔNG CHỈNH SỬA)
+   ======================================================= */
 .form-group {
   display: inline;
   margin-bottom: 15px;
@@ -30,7 +33,6 @@
   cursor: pointer;
   margin-right: 5px;
 }
-
 
 .form-group input:checked + label:not(label.radio):after {
   content: '';
@@ -301,4 +303,83 @@
 
 @media (min-width: 769px) {
     .mobile-only-btn { display: none !important; }
+}
+
+
+/* =======================================================
+   CODE BỔ SUNG FIX LỖI (AN TOÀN - KHÔNG PHÁ VỠ MÀU NỀN)
+   ======================================================= */
+
+/* 1. NGĂN TRÀN MÀN HÌNH VÀ THANH CUỘN NGANG */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* Ép các đoạn văn bản bình thường phải tự động xuống dòng */
+.course-content-area p, 
+.course-content-area span, 
+.course-content-area div,
+.course-content-area td,
+.course-content-area th { /* Thêm td, th phòng trường hợp nội dung nằm trong bảng */
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+}
+
+/* ĐẶC TRỊ: Ép link dài (URL) phải bẻ dòng bằng mọi giá */
+.course-content-area a {
+    word-wrap: break-word !important;
+    word-break: break-all !important; /* Bẻ gãy chữ bất chấp không có khoảng trắng */
+    white-space: normal !important;
+    display: inline-block !important; /* Chìa khóa vàng: Biến link thành khối để giới hạn kích thước */
+    max-width: 100% !important; /* Tuyệt đối không cho phép phình to hơn màn hình điện thoại */
+}
+
+/* Chống tràn hình ảnh */
+.course-content-area img {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* 2. CHỐNG BẸP VIDEO VÀ IFRAME */
+.course-content-area video, 
+.course-content-area iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9; /* Tự động tính toán chiều cao chuẩn tỷ lệ */
+    min-height: 250px; 
+}
+
+/* 3. FIX LỖI LỆCH GIAO DIỆN (LỀ ÂM BOOTSTRAP) TRÊN MOBILE */
+@media (max-width: 768px) {
+    /* Triệt tiêu margin âm gây xuất hiện viền dọc thừa trên mobile */
+    .course-content-area .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    .course-content-area .col-lg-8,
+    .course-content-area .col-lg-4 {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    /* Menu bài học (Nav-tabs) vuốt ngang mượt mà, ẩn thanh cuộn xấu */
+    .nav-tabs, .nav-pills {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important; 
+    }
+    
+    .nav-tabs::-webkit-scrollbar, .nav-pills::-webkit-scrollbar {
+        display: none !important;
+    }
+    
+    .nav-tabs .nav-item, .nav-pills .nav-item {
+        white-space: nowrap !important;
+    }
 }

@@ -1152,3 +1152,156 @@ section.featured-instructor{
     color: #e59819; 
     font-weight: 600;
 }
+
+/* =========================================================
+   1. ÉP CHIỀU CAO BẰNG NHAU CHO SLIDER (SLICK CAROUSEL)
+   ========================================================= */
+.course-carousel .slick-track {
+    display: flex !important;
+}
+.course-carousel .slick-slide {
+    height: auto;
+    display: flex;
+}
+
+/* =========================================================
+   2. STYLE CHO CARD KHÓA HỌC (HIỆN ĐẠI, BO GÓC, ĐỔ BÓNG)
+   ========================================================= */
+.course-box-wrap {
+    width: 100%;
+    display: flex;
+    padding: 10px; /* Khoảng trống để không bị lẹm viền đổ bóng */
+}
+
+.course-box {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px; /* Bo góc hiện đại */
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Đổ bóng nhẹ */
+    border: 1px solid #f1f5f9; /* Viền mỏng */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: #fff;
+}
+
+.course-box:hover {
+    transform: translateY(-5px); /* Hiệu ứng nảy lên khi di chuột */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+.course-box .course-details {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Căng giãn để đẩy phần giá xuống đáy */
+    padding: 16px !important;
+}
+
+/* =========================================================
+   3. ÉP KÍCH THƯỚC ẢNH ĐỒNG ĐỀU (TỰ ĐỘNG CẮT KHUNG)
+   ========================================================= */
+.course-box .course-image {
+    width: 100%;
+    height: 170px; /* Cố định chiều cao chung cho mọi ảnh */
+    overflow: hidden;
+    position: relative;
+}
+
+.course-box .course-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Tự động cắt phần thừa, KHÔNG làm méo ảnh */
+    object-position: center;
+    border-radius: 12px 12px 0 0; /* Khớp với độ bo góc của Card */
+    transition: transform 0.5s ease;
+}
+
+.course-box:hover .course-image img {
+    transform: scale(1.05); /* Zoom ảnh nhẹ khi hover */
+}
+
+/* =========================================================
+   4. XỬ LÝ TEXT: GIỚI HẠN TÊN KHÓA HỌC CHUẨN 2 DÒNG
+   ========================================================= */
+.course-box .title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Giới hạn đúng 2 dòng, phần thừa thành ... */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 10px;
+    min-height: 44px; /* Chiếm đủ không gian 2 dòng dù text ngắn */
+}
+
+/* =========================================================
+   5. ĐẨY PHẦN GIÁ TIỀN / ĐÁNH GIÁ XUỐNG DƯỚI CÙNG CARD
+   ========================================================= */
+.course-box .course-price {
+    margin-top: auto; /* Lực đẩy quan trọng đưa giá tiền xuống đáy */
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+    font-weight: bold;
+}
+
+/* =========================================================
+   6. TỐI ƯU HIỂN THỊ TRÊN ĐIỆN THOẠI (MOBILE RESPONSIVE)
+   ========================================================= */
+@media (max-width: 767px) {
+    .course-box-wrap {
+        padding: 5px; /* Giảm khoảng cách giữa các Card trên mobile */
+    }
+    .course-box .course-image {
+        height: 150px; /* Giảm chiều cao ảnh trên màn hình nhỏ */
+    }
+    .course-box .title {
+        font-size: 15px; /* Chữ nhỏ lại một chút */
+        min-height: 42px;
+    }
+    .course-box .course-details {
+        padding: 12px !important;
+    }
+}
+
+/* =========================================================
+   FIX LỖI XUẤT HIỆN THANH CUỘN NGANG DƯỚI ĐÁY MÀN HÌNH
+   ========================================================= */
+html, body {
+    overflow-x: hidden; /* Cắt bỏ mọi thành phần dư thừa lòi ra bên ngoài chiều ngang */
+    width: 100%;
+    max-width: 100vw;
+}
+
+/* Các row của Bootstrap đôi khi gây trôi ngang trên mobile do margin âm */
+.container-fluid {
+    overflow-x: hidden;
+}
+
+/* =========================================================
+   CĂN GIỮA FOOTER TRÊN MÀN HÌNH ĐIỆN THOẠI (MOBILE)
+   ========================================================= */
+@media (max-width: 767px) {
+    /* Ép tất cả các khối trong Footer phải đứng ở giữa */
+    .footer-area, 
+    .footer-area .row > div,
+    .footer-area p,
+    .footer-area h6 {
+        text-align: center !important;
+    }
+
+    /* Nếu có nhóm menu xếp hàng ngang (Flexbox), gom chúng ra giữa */
+    .footer-area .d-flex {
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+
+    /* Chỉnh lại khoảng cách các khối ở Footer cho đẹp khi đứng giữa */
+    .footer-area .mt-4, 
+    .footer-area .mb-4 {
+        margin-top: 15px !important;
+        margin-bottom: 15px !important;
+    }
+}

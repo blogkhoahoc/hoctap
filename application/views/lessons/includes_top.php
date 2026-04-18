@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,400i,600,700" rel="stylesheet">
 <link rel="stylesheet" href="<?php echo base_url().'assets/global/toastr/toastr.css' ?>">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nestable2/1.6.0/jquery.nestable.min.css" />
-<link rel="stylesheet" href="<?php echo base_url().'assets/lessons/css/custom.css' ?>">
+<link rel="stylesheet" href="<?php echo base_url() . 'assets/lessons/css/custom.css?v=' . filemtime('assets/lessons/css/custom.css'); ?>">
 <script src="<?php echo base_url('assets/backend/js/jquery-3.3.1.min.js'); ?>"></script>
 
 <!-- Lesson page specific styles are here -->
