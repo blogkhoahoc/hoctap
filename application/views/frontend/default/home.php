@@ -524,6 +524,106 @@ foreach($top_enrols as $enrol_data) {
 </section>
 <?php endif; ?>
 
+<section class="rich-course-section py-5">
+    <div class="container-lg">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h3 class="rich-section-title">
+                    <span class="icon-wrap"><i class="fas fa-heart text-white"></i></span> 
+                    Có thể bạn sẽ thích
+                </h3>
+                <p class="rich-section-subtitle">Những khóa học tuyệt vời dành riêng cho hành trình của bạn</p>
+            </div>
+        </div>
+
+        <div class="rich-carousel-wrap">
+            <div class="row flex-nowrap flex-md-wrap rich-scroll-row px-3 px-md-0">
+                <?php
+                // Lấy 8 khóa học ngẫu nhiên
+                $this->db->where('status', 'active');
+                $this->db->order_by('rand()');
+                $this->db->limit(8);
+                $random_courses = $this->db->get('course')->result_array();
+
+                foreach ($random_courses as $course):
+                    $instructor_details = $this->user_model->get_all_user($course['user_id'])->row_array();
+                    $lessons = $this->crud_model->get_lessons('course', $course['id'])->num_rows();
+                    $total_duration = $this->crud_model->get_total_duration_of_lesson_by_course_id($course['id']);
+                    
+                    $total_rating =  $this->crud_model->get_ratings('course', $course['id'], true)->row()->rating;
+                    $number_of_ratings = $this->crud_model->get_ratings('course', $course['id'])->num_rows();
+                    $average_ceil_rating = ($number_of_ratings > 0) ? ceil($total_rating / $number_of_ratings) : 0;
+                ?>
+                
+                <div class="col-lg-3 col-md-4 col-10 mb-md-4 px-2 rich-scroll-item">
+                    <a href="<?php echo site_url('home/course/' . rawurlencode(slugify($course['title'])) . '/' . $course['id']); ?>" class="rich-card-link">
+                        <div class="rich-course-card h-100 d-flex flex-column">
+                            <div class="rich-card-image">
+                                <img src="<?php echo $this->crud_model->get_course_thumbnail_url($course['id']); ?>" alt="<?php echo $course['title']; ?>">
+                                <?php if ($course['is_top_course'] == 1): ?>
+                                    <div class="rich-badge-hot"><i class="fas fa-fire mr-1"></i> Bán chạy</div>
+                                <?php endif; ?>
+                                <div class="rich-play-overlay">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+
+                            <div class="rich-card-body d-flex flex-column flex-grow-1">
+                                <h5 class="rich-course-title text-dark"><?php echo $course['title']; ?></h5>
+                                
+                                <div class="rich-instructor d-flex align-items-center mb-3">
+                                    <img src="<?php echo $this->user_model->get_user_image_url($instructor_details['id']); ?>" alt="Avatar" class="instructor-avatar">
+                                    <span class="instructor-name text-truncate"><?php echo $instructor_details['first_name'] . ' ' . $instructor_details['last_name']; ?></span>
+                                </div>
+
+                                <div class="rich-meta-box d-flex justify-content-between align-items-center mb-3">
+                                    <div class="meta-item" title="Số bài học">
+                                        <i class="fas fa-book-open meta-icon text-primary"></i>
+                                        <span><?php echo $lessons; ?> bài</span>
+                                    </div>
+                                    <div class="meta-divider"></div>
+                                    <div class="meta-item" title="Thời lượng">
+                                        <i class="fas fa-clock meta-icon text-danger"></i>
+                                        <span><?php echo $total_duration; ?></span>
+                                    </div>
+                                </div>
+
+                                <div class="rich-rating d-flex align-items-center mb-3">
+                                    <span class="rating-number font-weight-bold text-dark mr-1"><?php echo $average_ceil_rating; ?></span>
+                                    <div class="stars text-warning mr-1">
+                                        <?php for ($i = 1; $i < 6; $i++): ?>
+                                            <i class="fas fa-star <?php echo $i <= $average_ceil_rating ? '' : 'text-light'; ?>"></i>
+                                        <?php endfor; ?>
+                                    </div>
+                                    <span class="rating-count text-muted">(<?php echo $number_of_ratings; ?>)</span>
+                                </div>
+
+                                <div class="rich-card-footer mt-auto d-flex justify-content-between align-items-center">
+                                    <div class="rich-price-wrap">
+                                        <?php if ($course['is_free_course'] == 1): ?>
+                                            <span class="price-current text-success">Miễn phí</span>
+                                        <?php else: ?>
+                                            <?php if ($course['discount_flag'] == 1): ?>
+                                                <span class="price-current text-danger"><?php echo currency($course['discounted_price']); ?></span>
+                                                <span class="price-original text-muted"><del><?php echo currency($course['price']); ?></del></span>
+                                            <?php else: ?>
+                                                <span class="price-current text-dark"><?php echo currency($course['price']); ?></span>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="rich-action-btn">
+                                        <i class="fas fa-arrow-right"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</section>
 
 <?php $latest_blogs = $this->crud_model->get_latest_blogs(3); ?>
 <?php if(get_frontend_settings('blog_visibility_on_the_home_page') && $latest_blogs->num_rows() > 0): ?>
