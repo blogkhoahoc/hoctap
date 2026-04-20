@@ -1505,7 +1505,10 @@ class Crud_model extends CI_Model
             move_uploaded_file($_FILES['caption']['tmp_name'], 'uploads/lesson_files/captions/' . $data['caption']);
         }
 
-
+		$this->db->where('section_id', $data['section_id']);
+		$this->db->select_max('order');
+		$max_order_query = $this->db->get('lesson')->row();
+		$data['order'] = (int)$max_order_query->order + 1;
         $this->db->insert('lesson', $data);
         $inserted_id = $this->db->insert_id();
 
