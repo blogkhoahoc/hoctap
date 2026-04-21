@@ -1947,17 +1947,15 @@ class Admin extends CI_Controller
     }
     //End of data center
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+	public function lesson_import_csv($course_id = '') {
+        if ($this->session->userdata('admin_login') != true) {
+            redirect(site_url('login'), 'refresh');
+        }
+        
+        // Gọi Model xử lý logic đọc file
+        $this->crud_model->import_lessons_from_csv($course_id);
+        
+        $this->session->set_flashdata('flash_message', 'Nhập danh sách bài học từ CSV thành công');
+        redirect(site_url('admin/course_form/course_edit/' . $course_id . '?tab=curriculum'), 'refresh');
+    }
 }

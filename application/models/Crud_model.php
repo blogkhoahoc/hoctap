@@ -4217,6 +4217,105 @@ class Crud_model extends CI_Model
             return false;
         }
     }
+	
+	public function import_lessons_from_csv($course_id) {
+        // Kiểm tra xem có file tải lên không và lấy thư mục tmp (tự động xóa sau khi script chạy xong)
+        if (isset($_FILES['csv_file']) && $_FILES['csv_file']['tmp_name'] != '') {
+            $file = $_FILES['csv_file']['tmp_name'];
+            $handle = fopen($file, "r");
+            $header_skipped = false;
+    
+            // 1. Lấy danh sách các Section hiện tại của khóa học này và sắp xếp theo Order
+            $this->db->order_by('order', 'asc');
+            $this->db->where('course_id', $course_id);
+            $sections = $this->db->get('section')->result_array();
+    
+            // 2. Duyệt qua từng dòng của file CSV
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                // Bỏ qua dòng Header (Dòng đầu tiên: ID,Tên video,Link url,Thời lượng)
+                if (!$header_skipped) {
+                    $header_skipped = true;
+                    continue; 
+                }
+    
+                // Đảm bảo dòng có đủ 4 cột
+                if (count($data) >= 4) {
+                    $section_index_mapped = trim($data[0]); // Chứa 1, 2, 3...
+                    $title                = trim($data[1]);
+                    $raw_url              = trim($data[2]);
+                    $duration             = trim($data[3]);
+                    
+                    // ----- XỬ LÝ CHUẨN HÓA DURATION (THỜI LƯỢNG) -----
+                    $duration_parts = explode(':', $duration);
+                    if (count($duration_parts) == 2) {
+                        // Dạng MM:SS (VD: 5:59) -> Chuyển thành 00:MM:SS
+                        $duration = '00:' . sprintf("%02d", $duration_parts[0]) . ':' . sprintf("%02d", $duration_parts[1]);
+                    } elseif (count($duration_parts) == 3) {
+                        // Dạng H:MM:SS (VD: 1:05:02) -> Chuyển thành HH:MM:SS
+                        $duration = sprintf("%02d", $duration_parts[0]) . ':' . sprintf("%02d", $duration_parts[1]) . ':' . sprintf("%02d", $duration_parts[2]);
+                    } else {
+                        // Nếu ô thời lượng trống hoặc sai định dạng
+                        $duration = '00:00:00'; 
+                    }
+                    // --------------------------------------------------
+    
+                    // Bỏ qua dòng rỗng nếu có
+                    if(empty($title) || empty($raw_url)) continue;
+    
+                    // ----- XỬ LÝ LẤY YOUTUBE ID -----
+                    $youtube_id = '';
+                    // Regex bắt cả dạng youtube.com/watch?v=... và youtu.be/...
+                    if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $raw_url, $match)) {
+                        $youtube_id = $match[1];
+                    }
+    
+                    if (!empty($youtube_id)) {
+                        // Gán vào form chuẩn Iframe
+                        $iframe_source = "https://www.youtube-nocookie.com/embed/{$youtube_id}?vq=hd1080&modestbranding=1&rel=0&cc_load_policy=1&iv_load_policy=3";
+    
+                        // ----- XỬ LÝ MAP SECTION -----
+                        $actual_section_id = 0;
+                        // Chuyển index của user (1,2,3...) thành mảng array (0,1,2...)
+                        $section_array_index = (int)$section_index_mapped - 1;
+                        
+                        if (isset($sections[$section_array_index])) {
+                            // Trỏ đúng vào Primary Key ID trong database
+                            $actual_section_id = $sections[$section_array_index]['id'];
+                        } else {
+                            // Trữ tình huống ghi lố Section (Ghi section 5 nhưng khóa học mới có 3 section)
+                            // Sẽ nhét nó vào Section cuối cùng
+                            if(count($sections) > 0) {
+                                $actual_section_id = $sections[count($sections)-1]['id'];
+                            } else {
+                                continue; // Bỏ qua nếu khóa học này hoàn toàn chưa tạo Section nào
+                            }
+                        }
+    
+                        // ----- CHUẨN BỊ ORDER CHO BÀI HỌC MỚI -----
+                        $this->db->where('section_id', $actual_section_id);
+                        $next_order = $this->db->count_all_results('lesson') + 1;
+    
+                        // ----- INSERT VÀO DATABASE -----
+                        $lesson_data = array(
+                            'title'           => $title,
+                            'duration'        => $duration,
+                            'course_id'       => $course_id,
+                            'section_id'      => $actual_section_id,
+                            'lesson_type'     => 'other',
+                            'attachment_type' => 'iframe',
+                            'attachment'       => $iframe_source,
+                            'order'           => $next_order,
+                            'date_added'      => strtotime(date('D, d-M-Y'))
+                        );
+    
+                        $this->db->insert('lesson', $lesson_data);
+                    }
+                }
+            }
+            fclose($handle);
+            // Ngay sau khi fclose và kết thúc logic, biến $file ($tmp_name) lập tức bị PHP Server hủy bỏ, không lưu bất cứ dấu vết nào.
+        }
+    }
 
     
 }
