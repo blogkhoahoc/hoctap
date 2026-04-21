@@ -625,6 +625,127 @@ foreach($top_enrols as $enrol_data) {
     </div>
 </section>
 
+<section class="coupon-section">
+    <div class="container-lg">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h3 class="rich-section-title">
+                    <span class="icon-wrap" style="background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); padding: 10px 12px; border-radius: 50%;">
+                        <i class="fas fa-ticket-alt text-white"></i>
+                    </span> 
+                    Mã giảm giá
+                </h3>
+                <p class="rich-section-subtitle">Săn mã giảm giá để nhận ưu đãi cực khủng</p>
+            </div>
+        </div>
+
+        <?php 
+            $coupons = $this->db->get('coupons')->result_array(); 
+            if (!empty($coupons)): 
+        ?>
+            <div class="row">
+                <?php foreach ($coupons as $coupon): ?>
+                    <?php
+                        $is_expired = false;
+                        $expiry_date_str = "";
+                        if (!empty($coupon['expiry_date'])) {
+                            if (is_numeric($coupon['expiry_date'])) {
+                                $is_expired = time() > $coupon['expiry_date'];
+                                $expiry_date_str = date('d/m/Y', $coupon['expiry_date']); 
+                            } else {
+                                $is_expired = time() > strtotime($coupon['expiry_date']);
+                                $expiry_date_str = date('d/m/Y', strtotime($coupon['expiry_date']));
+                            }
+                        }
+
+                        $remaining_qty = isset($coupon['quantity']) ? (int)$coupon['quantity'] : 0;
+                        $is_empty = ($remaining_qty <= 0);
+
+                        $applied_courses = [];
+                        if (!empty($coupon['course_ids'])) {
+                            $course_ids = json_decode($coupon['course_ids'], true); 
+                            if(json_last_error() !== JSON_ERROR_NONE || !is_array($course_ids)) {
+                                $course_ids = explode(',', $coupon['course_ids']);
+                            }
+                            
+                            if(is_array($course_ids)) {
+                                foreach ($course_ids as $c_id) {
+                                    if(trim($c_id) != '') {
+                                        $course_details = $this->crud_model->get_course_by_id(trim($c_id))->row_array();
+                                        if ($course_details) {
+                                            $applied_courses[] = [
+                                                'id' => $course_details['id'],
+                                                'title' => $course_details['title']
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        $status_class = 'ts-active';
+                        $status_text = 'Có thể sử dụng';
+
+                        if ($is_empty) {
+                            $status_class = 'ts-empty';
+                            $status_text = 'Mã giảm giá đã hết';
+                        } elseif ($is_expired) {
+                            $status_class = 'ts-expired';
+                            $status_text = 'Mã đã hết hạn sử dụng';
+                        }
+                    ?>
+                    
+                    <div class="col-lg-4 col-md-6 col-12 mb-4">
+                        <div class="ticket-wrapper">
+                            <div class="ticket-left">
+                                <div class="ticket-value"><?php echo $coupon['discount_percentage']; ?>%</div>
+                                <div class="ticket-code"><?php echo $coupon['code']; ?></div>
+                            </div>
+                            
+                            <div class="ticket-right">
+                                <div class="t-info-wrap">
+                                    <?php if (empty($applied_courses)): ?>
+                                        <div class="t-desc">Giảm giá <?php echo $coupon['discount_percentage']; ?>% hóa đơn</div>
+                                        <div class="ticket-course-badge mb-3" style="display: inline-block;">
+                                            <i class="fas fa-globe"></i> Áp dụng cho mọi khóa học
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="t-desc">Áp dụng cho <?php echo count($applied_courses); ?> khóa học:</div>
+                                        <div class="t-course-list">
+                                            <?php foreach($applied_courses as $c): ?>
+                                                <?php $course_url = site_url('home/course/' . rawurlencode(slugify($c['title'])) . '/' . $c['id']); ?>
+                                                <a href="<?php echo $course_url; ?>" target="_blank" onclick="window.open(this.href, '_blank'); return false;" class="ticket-course-badge" title="Xem chi tiết: <?php echo htmlspecialchars($c['title']); ?>">
+                                                    <i class="fas fa-external-link-alt"></i> <span><?php echo $c['title']; ?></span>
+                                                </a>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <div class="mt-auto border-top pt-2" style="border-color: #edf2f7 !important;">
+                                    <div class="ticket-meta">
+                                        <i class="fas fa-box-open text-primary"></i> <span>Số lượng còn lại: <strong><?php echo $remaining_qty; ?></strong></span>
+                                    </div>
+                                    <div class="ticket-meta mb-0">
+                                        <i class="far fa-clock text-warning"></i> <span>Thời hạn đến: <strong><?php echo $expiry_date_str; ?></strong></span>
+                                    </div>
+                                    <div>
+                                        <span class="ticket-status <?php echo $status_class; ?>"><?php echo $status_text; ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-warning text-center border-0 shadow-sm" style="border-radius: 10px; padding: 20px;">
+                <i class="fas fa-box-open mr-2" style="font-size: 1.2rem;"></i> Hiện tại chưa có mã giảm giá nào !
+            </div>
+        <?php endif; ?>
+    </div>
+</section>
+
 <?php $latest_blogs = $this->crud_model->get_latest_blogs(3); ?>
 <?php if(get_frontend_settings('blog_visibility_on_the_home_page') && $latest_blogs->num_rows() > 0): ?>
     <section class="section-blog pt-5">

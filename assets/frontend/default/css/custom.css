@@ -1639,3 +1639,180 @@ html, body {
     .price-current { font-size: 16px; }
     .rich-action-btn { width: 28px; height: 28px; background: #0056d2; color:#fff;} /* Mobile luôn hiện xanh */
 }
+
+/* CSS Giao diện Ticket */
+.coupon-section {
+    background-color: #f8f9fa;
+    padding-top: 40px;
+    padding-bottom: 60px;
+}
+.ticket-wrapper {
+    background: #fff;
+    border-radius: 14px;
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid #edf2f7;
+    height: 100%;
+    position: relative;
+}
+.ticket-wrapper:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+}
+.ticket-left {
+    background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+    color: #fff;
+    padding: 20px 15px;
+    width: 32%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-right: 2px dashed rgba(255,255,255,0.7);
+    text-align: center;
+}
+.ticket-left::before, .ticket-left::after {
+    content: '';
+    position: absolute;
+    right: -12px;
+    width: 24px;
+    height: 24px;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    border-left: 1px solid #edf2f7;
+}
+.ticket-left::before { top: -12px; }
+.ticket-left::after { bottom: -12px; }
+
+.ticket-right {
+    padding: 20px;
+    width: 68%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+}
+.ticket-value {
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    margin-bottom: 0;
+}
+.ticket-code {
+    font-size: 14px;
+    background: rgba(255,255,255,0.25);
+    padding: 6px 14px;
+    border-radius: 8px;
+    margin-top: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    backdrop-filter: blur(4px);
+}
+
+.t-desc {
+    font-size: 15px;
+    color: #2d3748;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+.t-course-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 75px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    padding-right: 5px;
+    position: relative;
+    z-index: 5;
+}
+.t-course-list::-webkit-scrollbar { width: 4px; }
+.t-course-list::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
+
+.ticket-course-badge {
+    background-color: #f1f5f9;
+    color: #4a5568 !important;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    max-width: 100%;
+}
+
+a.ticket-course-badge {
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer !important;
+    position: relative;
+    z-index: 99;
+    pointer-events: auto;
+}
+a.ticket-course-badge:hover {
+    background-color: #e2e8f0;
+    color: #2b6cb0 !important;
+    border-color: #cbd5e0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.ticket-course-badge i {
+    font-size: 10px;
+    margin-right: 5px;
+    color: #38a169;
+}
+a.ticket-course-badge:hover i {
+    color: #2b6cb0;
+}
+.ticket-course-badge span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ticket-meta {
+    font-size: 13px;
+    color: #718096;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+}
+.ticket-meta i {
+    width: 18px;
+    text-align: center;
+    margin-right: 4px;
+}
+.ticket-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-top: 10px;
+}
+.ts-expired { background: #fed7d7; color: #c53030; }
+.ts-empty { background: #e2e8f0; color: #4a5568; }
+.ts-active { background: #c6f6d5; color: #276749; }
+
+@media (max-width: 768px) {
+    .ticket-wrapper { flex-direction: column; }
+    .ticket-left { 
+        width: 100%; 
+        border-right: none; 
+        border-bottom: 2px dashed rgba(255,255,255,0.7); 
+        padding: 20px; 
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .ticket-left::before, .ticket-left::after { display: none; } 
+    .ticket-left .ticket-code { margin-top: 0; }
+    .ticket-right { width: 100%; padding: 20px; }
+    .t-course-list { max-height: 85px; }
+}
