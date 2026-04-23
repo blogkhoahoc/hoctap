@@ -342,6 +342,44 @@ class Admin extends CI_Controller
         // Trả về JSON cho DataTables
         echo json_encode($output);
     }
+	
+	// Hàm 1: Chỉ đếm số lượng tài khoản chưa xác thực (dùng cho Popup)
+    public function check_unverified_users_count()
+    {
+        if ($this->session->userdata('admin_login') != true) {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            return;
+        }
+        check_permission('user');
+        check_permission('student');
+
+        $this->db->where('role_id', 2);
+        $this->db->where('status !=', 1);
+        $count = $this->db->count_all_results('users');
+
+        echo json_encode(['status' => 'success', 'count' => $count]);
+    }
+    
+    // Hàm 2: Thực thi lệnh xóa
+    public function execute_delete_unverified()
+    {
+        if ($this->session->userdata('admin_login') != true) {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            return;
+        }
+        check_permission('user');
+        check_permission('student');
+
+        $this->db->where('role_id', 2);
+        $this->db->where('status !=', 1);
+        $this->db->delete('users');
+
+        // SỬ DỤNG CHUẨN THÔNG BÁO CỦA HỆ THỐNG
+        $this->session->set_flashdata('flash_message', 'Đã xóa thành công toàn bộ tài khoản chưa kích hoạt!');
+
+        // Chỉ cần trả về success, JS sẽ lo việc reload trang
+        echo json_encode(['status'  => 'success']);
+    }
 
     public function add_shortcut_student()
     {
