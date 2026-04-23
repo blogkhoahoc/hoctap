@@ -323,6 +323,11 @@ $status_wise_courses = $this->crud_model->get_status_wise_courses();
 								<li class="<?php if ($page_name == 'users' || $page_name == 'user_edit') echo 'active'; ?>">
 									<a href="<?php echo site_url('admin/users'); ?>"><?php echo get_phrase('manage_students'); ?></a>
 								</li>
+								<li class="<?php if ($page_name == 'unenroll_student') echo 'active'; ?>">
+                                    <a href="<?php echo site_url('admin/unenroll_student'); ?>">
+                                        <span>Xóa khóa học</span>
+                                    </a>
+                                </li>
 								<li class="<?php if ($page_name == 'user_add') echo 'active'; ?>">
 									<a href="<?php echo site_url('admin/user_form/add_user_form'); ?>"><?php echo get_phrase('add_new_student'); ?></a>
 								</li>

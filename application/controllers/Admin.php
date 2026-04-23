@@ -1958,4 +1958,51 @@ class Admin extends CI_Controller
         $this->session->set_flashdata('flash_message', 'Nhập danh sách bài học từ CSV thành công');
         redirect(site_url('admin/course_form/course_edit/' . $course_id . '?tab=curriculum'), 'refresh');
     }
+	
+	public function unenroll_student($param1 = "", $param2 = "") {
+		// Kiểm tra quyền Admin
+		if ($this->session->userdata('admin_login') != true) {
+			redirect(site_url('login'), 'refresh');
+		}
+
+		// Xử lý khi nhấn nút tìm kiếm Email
+		if ($param1 == 'search') {
+			$email = $this->input->post('email');
+			$user = $this->db->get_where('users', array('email' => $email, 'role_id' => 2))->row_array(); // role_id = 2 thường là Student
+			
+			if ($user) {
+				$page_data['user_id'] = $user['id'];
+				$page_data['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+				$page_data['enrolled_courses'] = $this->db->get_where('enrol', array('user_id' => $user['id']))->result_array();
+			} else {
+				$this->session->set_flashdata('error_message', 'Không tìm thấy sinh viên với email này');
+				redirect(site_url('admin/unenroll_student'), 'refresh');
+			}
+		}
+
+		// Xử lý khi nhấn nút Xóa khóa học (Unenroll)
+		if ($param1 == 'unenroll') {
+			$course_ids = $this->input->post('course_ids'); // Mảng các course_id được chọn
+			$user_id = $this->input->post('user_id');
+
+			if (!empty($course_ids) && !empty($user_id)) {
+				foreach ($course_ids as $course_id) {
+					// Xóa dữ liệu trong bảng enrol
+					$this->db->where('user_id', $user_id);
+					$this->db->where('course_id', $course_id);
+					$this->db->delete('enrol');
+				}
+				$this->session->set_flashdata('flash_message', 'Đã gỡ sinh viên khỏi khóa học thành công');
+			} else {
+				$this->session->set_flashdata('error_message', 'Bạn chưa chọn khóa học nào để xóa');
+			}
+			
+			redirect(site_url('admin/unenroll_student'), 'refresh');
+		}
+
+		// Load giao diện
+		$page_data['page_name'] = 'unenroll_student';
+		$page_data['page_title'] = 'Xóa khóa học của sinh viên';
+		$this->load->view('backend/index', $page_data);
+	}
 }
