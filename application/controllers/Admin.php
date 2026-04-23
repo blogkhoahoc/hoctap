@@ -187,11 +187,11 @@ class Admin extends CI_Controller
         if ($this->session->userdata('admin_login') != true) {
             redirect(site_url('login'), 'refresh');
         }
-
+    
         // CHECK ACCESS PERMISSION
         check_permission('user');
         check_permission('student');
-
+    
         if ($param1 == "add") {
             $this->user_model->add_user();
             redirect(site_url('admin/users'), 'refresh');
@@ -202,11 +202,145 @@ class Admin extends CI_Controller
             $this->user_model->delete_user($param2);
             redirect(site_url('admin/users'), 'refresh');
         }
-
+    
         $page_data['page_name'] = 'users';
         $page_data['page_title'] = get_phrase('student');
-        $page_data['users'] = $this->user_model->get_user($param2);
+        
+        // COMMENT HOẶC XÓA DÒNG NÀY ĐỂ KHÔNG LOAD 2000 USER NỮA
+        // $page_data['users'] = $this->user_model->get_user($param2); 
+        
         $this->load->view('backend/index', $page_data);
+    }
+	
+	public function get_users_ajax()
+    {
+        // Kiểm tra quyền truy cập
+        if ($this->session->userdata('admin_login') != true) {
+            echo json_encode(['error' => 'Unauthorized']);
+            return;
+        }
+        check_permission('user');
+        check_permission('student');
+    
+        // Lấy thông số từ DataTables gửi lên
+        $limit  = $this->input->post('length');
+        $start  = $this->input->post('start');
+        $search = $this->input->post('search')['value'];
+        
+        // BẮT GIÁ TRỊ FILTER TỪ AJAX GỬI LÊN
+        $status_filter = $this->input->post('status_filter');
+    
+        // --- LẤY THÔNG SỐ SORT TỪ DATATABLES ---
+        $order_col_index = $this->input->post('order')[0]['column']; // Vị trí cột đang click
+        $order_dir       = $this->input->post('order')[0]['dir'];    // 'asc' hoặc 'desc'
+        
+        // Map vị trí cột (ở View) tương ứng với tên cột trong Database
+        $columns = array(
+            0 => 'id',         // Cột #
+            1 => 'id',         // Cột Photo (Không sort)
+            2 => 'first_name', // Cột Name
+            3 => 'email',      // Cột Email
+            4 => 'id',         // Cột Khóa học (Không sort)
+            5 => 'id'          // Cột Actions (Không sort)
+        );
+        $order_column = isset($columns[$order_col_index]) ? $columns[$order_col_index] : 'id';
+        // ----------------------------------------
+    
+        // Bắt đầu query
+        $this->db->where('role_id', 2);
+    
+        // Lọc user chưa xác thực
+        if ($status_filter == 'unverified') {
+            $this->db->where('status !=', 1);
+        }
+    
+        // Xử lý tìm kiếm
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('first_name', $search);
+            $this->db->or_like('last_name', $search);
+            $this->db->or_like('email', $search);
+            $this->db->group_end();
+        }
+    
+        // Đếm số lượng data thực tế sau khi áp dụng filter/tìm kiếm
+        $total_filtered = $this->db->count_all_results('users', FALSE);
+    
+        // CẢI TIẾN 1: Ngăn lỗi sập SQL khi $limit = -1 (Chọn hiển thị "All")
+        if ($limit > 0) {
+            $this->db->limit($limit, $start);
+        }
+    
+        // CẢI TIẾN 2: Xử lý Sorting linh hoạt
+        if (!empty($order_col_index) && $order_col_index != 0) {
+            // Nếu click vào tiêu đề các cột (Name, Email...) thì sort theo yêu cầu
+            $this->db->order_by($order_column, $order_dir);
+        } else {
+            // Mặc định luôn ưu tiên ID lớn nhất (Học viên mới nhất) ở trên cùng
+            $this->db->order_by('id', 'DESC');
+        }
+    
+        $users = $this->db->get()->result_array();
+    
+        // Tính tổng số học viên gốc
+        $total_users = $this->db->where('role_id', 2)->count_all_results('users');
+    
+        $data = array();
+        foreach ($users as $key => $user) {
+            $row = array();
+    
+            // Cột 1: STT
+            $row[] = $start + $key + 1;
+    
+            // Cột 2: Photo
+            $row[] = '<img src="'.$this->user_model->get_user_image_url($user['id']).'" alt="" height="50" width="50" class="img-fluid rounded-circle img-thumbnail">';
+    
+            // Cột 3: Tên và Trạng thái
+            $name = $user['first_name'] . ' ' . $user['last_name'];
+            if ($user['status'] != 1) {
+                $name .= '<br><small><p>'.get_phrase('status').': <span class="badge badge-danger-lighten">'.get_phrase('unverified').'</span></p></small>';
+            }
+            $row[] = $name;
+    
+            // Cột 4: Email
+            $row[] = $user['email'];
+    
+            // Cột 5: Enrolled Courses
+            $enrolled_courses = $this->crud_model->enrol_history_by_user_id($user['id']);
+            $courses_html = '<ul>';
+            foreach ($enrolled_courses->result_array() as $enrolled_course) {
+                $course_details = $this->crud_model->get_course_by_id($enrolled_course['course_id'])->row_array();
+                if ($course_details) {
+                    $courses_html .= '<li>' . $course_details['title'] . '</li>';
+                }
+            }
+            $courses_html .= '</ul>';
+            $row[] = $courses_html;
+    
+            // Cột 6: Actions
+            $action = '<div class="dropright dropright">
+                <button type="button" class="btn btn-sm btn-outline-primary btn-rounded btn-icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="mdi mdi-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="'.site_url('admin/user_form/edit_user_form/'.$user['id']).'">'.get_phrase('edit').'</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="confirm_modal(\''.site_url('admin/users/delete/'.$user['id']).'\');">'.get_phrase('delete').'</a></li>
+                </ul>
+            </div>';
+            $row[] = $action;
+    
+            $data[] = $row;
+        }
+    
+        $output = array(
+            "draw" => intval($this->input->post('draw')),
+            "recordsTotal" => $total_users,
+            "recordsFiltered" => $total_filtered,
+            "data" => $data
+        );
+    
+        // Trả về JSON cho DataTables
+        echo json_encode($output);
     }
 
     public function add_shortcut_student()
