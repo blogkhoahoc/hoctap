@@ -210,6 +210,9 @@ if (!function_exists('currency')) {
             $CI->db->where('key', 'currency_position');
             $position = $CI->db->get('settings')->row('value');
 
+            // ĐOẠN CODE THÊM MỚI: Format giá tiền trước khi ghép với ký hiệu
+            $price = number_format($price, 0, ',', '.');
+
             if ($position == 'right') {
                 return $price . $symbol;
             } elseif ($position == 'right-space') {

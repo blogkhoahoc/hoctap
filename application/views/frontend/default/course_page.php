@@ -215,69 +215,80 @@ $instructor_details = $this->user_model->get_all_user($course_details['user_id']
         <?php endif; ?>
 
 
-        <div class="compare-box view-more-parent">
-          <div class="view-more" onclick="viewMore(this)">+ <?php echo site_phrase('view_more'); ?></div>
-          <div class="compare-title"><?php echo site_phrase('other_related_courses'); ?></div>
-          <div class="compare-courses-wrap">
-            <?php
-            $this->db->limit(5);
-            $other_realted_courses = $this->crud_model->get_courses($course_details['category_id'], $course_details['sub_category_id'])->result_array();
-            foreach ($other_realted_courses as $other_realted_course) :
-              if ($other_realted_course['id'] != $course_details['id'] && $other_realted_course['status'] == 'active') : ?>
-                <div class="course-comparism-item-container this-course">
-                  <div class="course-comparism-item clearfix">
-                    <div class="item-image float-start  mt-4 mt-md-0">
-                      <a href="<?php echo site_url('home/course/' . slugify($other_realted_course['title']) . '/' . $other_realted_course['id']); ?>"><img src="<?php $this->crud_model->get_course_thumbnail_url($other_realted_course['id']); ?>" alt="" class="img-fluid"></a>
-                      <div class="item-duration"><b><?php echo $this->crud_model->get_total_duration_of_lesson_by_course_id($other_realted_course['id']); ?></b></div>
-                    </div>
-                    <div class="item-title float-start">
-                      <div class="title"><a href="<?php echo site_url('home/course/' . slugify($other_realted_course['title']) . '/' . $other_realted_course['id']); ?>"><?php echo $other_realted_course['title']; ?></a></div>
-                      <?php if ($other_realted_course['last_modified'] > 0) : ?>
-                        <div class="updated-time"><?php echo site_phrase('updated') . ' ' . date('D, d-M-Y', $other_realted_course['last_modified']); ?></div>
-                      <?php else : ?>
-                        <div class="updated-time"><?php echo site_phrase('updated') . ' ' . date('D, d-M-Y', $other_realted_course['date_added']); ?></div>
-                      <?php endif; ?>
-                    </div>
-                    <div class="item-details float-start">
-                      <span class="item-rating">
-                        <i class="fas fa-star"></i>
-                        <?php
+        <!-- KHU VỰC HIỂN THỊ KHÓA HỌC LIÊN QUAN -->
+        <div class="compare-box view-more-parent mt-4">
+            <!-- Nút xem thêm -->
+            <div class="view-more" onclick="viewMore(this)">+ <?php echo site_phrase('view_more'); ?></div>
+            
+            <!-- Tiêu đề -->
+            <div class="compare-title"><?php echo site_phrase('other_related_courses'); ?></div>
+            
+            <!-- Danh sách khóa học -->
+            <div class="compare-courses-wrap related-courses-wrapper mt-3">
+                <?php
+                $this->db->limit(5);
+                $other_realted_courses = $this->crud_model->get_courses($course_details['category_id'], $course_details['sub_category_id'])->result_array();
+                
+                foreach ($other_realted_courses as $other_realted_course) :
+                    if ($other_realted_course['id'] != $course_details['id'] && $other_realted_course['status'] == 'active') : 
+        
+                        // Tính toán sao và học viên
                         $total_rating =  $this->crud_model->get_ratings('course', $other_realted_course['id'], true)->row()->rating;
                         $number_of_ratings = $this->crud_model->get_ratings('course', $other_realted_course['id'])->num_rows();
-                        if ($number_of_ratings > 0) {
-                          $average_ceil_rating = ceil($total_rating / $number_of_ratings);
-                        } else {
-                          $average_ceil_rating = 0;
-                        }
-                        ?>
-                        <span class="d-inline-block average-rating"><?php echo $average_ceil_rating; ?></span>
-                      </span>
-                      <span class="enrolled-student">
-                        <i class="far fa-user"></i>
-                        <?php echo $this->crud_model->enrol_history($other_realted_course['id'])->num_rows(); ?>
-                      </span>
-                      <?php if ($other_realted_course['is_free_course'] == 1) : ?>
-                        <span class="item-price mt-4 mt-md-0">
-                          <span class="current-price"><?php echo site_phrase('free'); ?></span>
-                        </span>
-                      <?php else : ?>
-                        <?php if ($other_realted_course['discount_flag'] == 1) : ?>
-                          <span class="item-price mt-4 mt-md-0">
-                            <span class="original-price"><?php echo currency($other_realted_course['price']); ?></span>
-                            <span class="current-price"><?php echo currency($other_realted_course['discounted_price']); ?></span>
-                          </span>
-                        <?php else : ?>
-                          <span class="item-price mt-4 mt-md-0">
-                            <span class="current-price"><?php echo currency($other_realted_course['price']); ?></span>
-                          </span>
-                        <?php endif; ?>
-                      <?php endif; ?>
-                    </div>
-                  </div>
-                </div>
-              <?php endif; ?>
-            <?php endforeach; ?>
-          </div>
+                        $average_ceil_rating = ($number_of_ratings > 0) ? ceil($total_rating / $number_of_ratings) : 0;
+                        $number_of_enrolments = $this->crud_model->enrol_history($other_realted_course['id'])->num_rows();
+                ?>
+                    
+                    <a href="<?php echo site_url('home/course/' . slugify($other_realted_course['title']) . '/' . $other_realted_course['id']); ?>" class="text-decoration-none" style="display: block;">
+                        <div class="related-course-item">
+                            
+                            <!-- Hình ảnh Thumbnail -->
+                            <img src="<?php echo $this->crud_model->get_course_thumbnail_url($other_realted_course['id']); ?>" alt="Thumbnail" class="related-course-thumb">
+                            
+                            <!-- Thông tin khóa học -->
+                            <div class="related-course-info">
+                                <div class="related-course-title"><?php echo $other_realted_course['title']; ?></div>
+                                
+                                <div class="related-course-meta">
+                                    <span title="Đánh giá">
+                                        <i class="fas fa-star text-warning"></i> <?php echo $average_ceil_rating; ?>
+                                    </span>
+                                    <span title="Học viên">
+                                        <i class="fas fa-user text-muted"></i> <?php echo $number_of_enrolments; ?>
+                                    </span>
+                                    <span class="d-none d-md-inline-block" title="Cập nhật lần cuối">
+                                        <i class="far fa-calendar-alt text-muted"></i> 
+                                        <?php 
+                                            if ($other_realted_course['last_modified'] > 0) {
+                                                echo date('d-M-Y', $other_realted_course['last_modified']);
+                                            } else {
+                                                echo date('d-M-Y', $other_realted_course['date_added']);
+                                            }
+                                        ?>
+                                    </span>
+                                </div>
+                                
+                                <!-- Giá tiền -->
+                                <div class="related-course-price">
+                                    <?php if ($other_realted_course['is_free_course'] == 1) : ?>
+                                        <span class="text-success"><?php echo site_phrase('free'); ?></span>
+                                    <?php else : ?>
+                                        <?php if ($other_realted_course['discount_flag'] == 1) : ?>
+                                            <span><?php echo currency($other_realted_course['discounted_price']); ?></span>
+                                            <del><?php echo currency($other_realted_course['price']); ?></del>
+                                        <?php else : ?>
+                                            <span><?php echo currency($other_realted_course['price']); ?></span>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+        
+                        </div>
+                    </a>
+        
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
 
         <div class="about-instructor-box">
