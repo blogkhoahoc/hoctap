@@ -61,13 +61,14 @@
         </div>
     </div>
     <div class="col-md-7 col-xl-6">
-        <div class="card">
+        
+        <!-- Khu vực 1: Backup Source Code -->
+        <div class="card mb-3">
             <div class="card-body">
                 <div class="d-flex mb-3">
-                    <h5><?php echo get_phrase('backup_data'); ?></h5>
+                    <h5><?php echo get_phrase('backup_source_code'); ?></h5>
                     <a class="ml-auto btn btn-primary px-2 py-1" data-toggle="tooltip" title="<?php echo get_phrase('backup_your_current_data'); ?>" href="<?php echo site_url('data_center/create_backup_file'); ?>"><i class="dripicons-cloud-upload"></i> <?php echo get_phrase('keep_a_backup'); ?></a>
                 </div>
-
 
                 <?php if($this->session->flashdata('imported_message')): ?>
                     <div class="alert alert-success" role="alert">
@@ -76,10 +77,8 @@
                     </div>
                 <?php endif; ?>
 
-
-
                 <?php
-                    $all_backups = array_filter(glob('backups/*'), 'is_dir');
+                    $all_backups = glob('backups/*.zip'); 
                     if(count($all_backups) == 0): ?>
                         
                     <div class="alert alert-light" role="alert">
@@ -89,10 +88,13 @@
                 <?php endif; ?>
 
                 <?php
-                    foreach($all_backups as $key => $dir){
+                    foreach($all_backups as $key => $file_path){
                         ++$key;
-                        $dir_arr = explode('/',$dir);
-                        $folder_details = explode('_',end($dir_arr)); ?>
+                        $file_arr = explode('/', $file_path);
+                        $file_name = end($file_arr);
+                        $file_details = explode('_', str_replace('.zip', '', $file_name)); 
+                        $date_string = end($file_details); 
+                        ?>
 
                     <div class="card mb-1 shadow-none border">
                         <div class="p-2">
@@ -100,26 +102,31 @@
                                 <div class="col-auto">
                                     <div class="avatar-sm">
                                         <span class="avatar-title rounded">
-                                            <i class="mdi mdi-folder"></i>
+                                            <i class="mdi mdi-zip-box"></i>
                                         </span>
                                     </div>
                                 </div>
                                 <div class="col pl-0">
                                     <a href="javascript:void(0);" class="text-muted text-capitalize font-weight-bold">
-                                        <?php echo $folder_details[1]; ?>
+                                        <?php echo $file_name; ?>
                                     </a>
                                     <br>
                                     <?php
-                                        $created_date_arr = explode('-', $folder_details[2]);
+                                        $created_date_arr = explode('-', $date_string);
+                                        if (count($created_date_arr) == 6) {
+                                            $formatted_date = date('d M Y, H:i:s', strtotime($created_date_arr[0].' '.$created_date_arr[1].' '.$created_date_arr[2].' '.$created_date_arr[3].':'.$created_date_arr[4].':'.$created_date_arr[5]));
+                                        } else {
+                                            $formatted_date = date('d M Y, H:i:s', filemtime($file_path));
+                                        }
                                     ?>
-                                    <small class="mb-0 text-muted w-100"><?php echo date('d M Y, H:i:s', strtotime($created_date_arr[0].' '.$created_date_arr[1].' '.$created_date_arr[2].' '.$created_date_arr[3].':'.$created_date_arr[4].':'.$created_date_arr[5])); ?></small>
+                                    <small class="mb-0 text-muted w-100"><?php echo $formatted_date; ?></small>
                                 </div>
                                 <div class="col-auto">
                                     <!-- Button -->
-                                    <a href="<?php echo site_url('data_center/download_zip_file/'.end($dir_arr)); ?>" data-toggle="tooltip" title="<?php echo get_phrase('export'); ?>" target="_blank" class="btn btn-link btn-lg text-muted">
+                                    <a href="<?php echo site_url('data_center/download_zip_file/'.$file_name); ?>" data-toggle="tooltip" title="<?php echo get_phrase('export'); ?>" target="_blank" class="btn btn-link btn-lg text-muted">
                                         <i class="dripicons-download"></i>
                                     </a>
-                                    <a href="javascript:;" data-toggle="tooltip" title="<?php echo get_phrase('Delete'); ?>" onclick="confirm_modal('<?php echo site_url('data_center/delete_dir/'.end($dir_arr)); ?>')" class="btn btn-link btn-lg text-muted">
+                                    <a href="javascript:;" data-toggle="tooltip" title="<?php echo get_phrase('Delete'); ?>" onclick="confirm_modal('<?php echo site_url('data_center/delete_dir/'.$file_name); ?>')" class="btn btn-link btn-lg text-muted">
                                         <i class="dripicons-trash"></i>
                                     </a>
                                 </div>
@@ -130,6 +137,20 @@
                 <?php } ?>
             </div> <!-- end card-->
         </div>
+        
+        <!-- Khu vực 2: Thêm mới Export Database -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex mb-1">
+                    <h5><?php echo get_phrase('export_database'); ?></h5>
+                    <a class="ml-auto btn btn-info px-2 py-1" data-toggle="tooltip" title="<?php echo get_phrase('download_database'); ?>" href="<?php echo site_url('data_center/export_database'); ?>">
+                        <i class="mdi mdi-database-export"></i> <?php echo get_phrase('download_sql'); ?>
+                    </a>
+                </div>
+                <small class="text-muted"><?php echo get_phrase('download_a_copy_of_your_current_database_in_zip_format'); ?></small>
+            </div>
+        </div>
+
     </div>
 </div>
 
